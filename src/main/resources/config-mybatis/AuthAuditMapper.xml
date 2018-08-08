@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.mapper.AuthAuditMapper" >
+  <resultMap id="BaseResultMap" type="com.pojo.AuthAudit" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="user_id" property="userId" jdbcType="BIGINT" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="application_time" property="applicationTime" jdbcType="TIMESTAMP" />
+    <result column="auditor_id" property="auditorId" jdbcType="INTEGER" />
+    <result column="audit_time" property="auditTime" jdbcType="TIMESTAMP" />
+    <result column="refuse_reason" property="refuseReason" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdateTime" property="lastupdatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, user_id, state, application_time, auditor_id, audit_time, refuse_reason, create_time, 
+    lastUpdateTime
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_auth_audit
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="getAuthAudit" resultMap="BaseResultMap" parameterType="com.pojo.AuthAudit" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_auth_audit
+    where 1=1
+    <if test="userId != null" >
+        and user_id = #{userId,jdbcType=BIGINT}
+      </if>
+      <if test="state != null" >
+        and state = #{state,jdbcType=TINYINT}
+      </if>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from t_auth_audit
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.pojo.AuthAudit" >
+    insert into t_auth_audit (id, user_id, state, 
+      application_time, auditor_id, audit_time, 
+      refuse_reason, create_time, lastUpdateTime
+      )
+    values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{state,jdbcType=TINYINT}, 
+      #{applicationTime,jdbcType=TIMESTAMP}, #{auditorId,jdbcType=INTEGER}, #{auditTime,jdbcType=TIMESTAMP}, 
+      #{refuseReason,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{lastupdatetime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.pojo.AuthAudit" >
+    insert into t_auth_audit
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="userId != null" >
+        user_id,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="applicationTime != null" >
+        application_time,
+      </if>
+      <if test="auditorId != null" >
+        auditor_id,
+      </if>
+      <if test="auditTime != null" >
+        audit_time,
+      </if>
+      <if test="refuseReason != null" >
+        refuse_reason,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="lastupdatetime != null" >
+        lastUpdateTime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="applicationTime != null" >
+        #{applicationTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="auditorId != null" >
+        #{auditorId,jdbcType=INTEGER},
+      </if>
+      <if test="auditTime != null" >
+        #{auditTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="refuseReason != null" >
+        #{refuseReason,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastupdatetime != null" >
+        #{lastupdatetime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.pojo.AuthAudit" >
+    update t_auth_audit
+    <set >
+      <if test="userId != null" >
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="applicationTime != null" >
+        application_time = #{applicationTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="auditorId != null" >
+        auditor_id = #{auditorId,jdbcType=INTEGER},
+      </if>
+      <if test="auditTime != null" >
+        audit_time = #{auditTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="refuseReason != null" >
+        refuse_reason = #{refuseReason,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastupdatetime != null" >
+        lastUpdateTime = #{lastupdatetime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.pojo.AuthAudit" >
+    update t_auth_audit
+    set user_id = #{userId,jdbcType=BIGINT},
+      state = #{state,jdbcType=TINYINT},
+      application_time = #{applicationTime,jdbcType=TIMESTAMP},
+      auditor_id = #{auditorId,jdbcType=INTEGER},
+      audit_time = #{auditTime,jdbcType=TIMESTAMP},
+      refuse_reason = #{refuseReason,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      lastUpdateTime = #{lastupdatetime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
