@@ -107,15 +107,24 @@ public class TokenAuthenticationFilter extends UsernamePasswordAuthenticationFil
         }
 
         successfulAuthentication(request, response, chain, authResult);
-        if(isNewLog){
-            String token=userSvcImpl.generalToken(userName, CacheKeyConstant.TOKEN_PLATFORM,CacheKeyConstant.TOKEN_WEB_SIGNTYPE);
-            TokenUtil.writeCookie(userName,token,request,response);
+        try {
+            if(isNewLog){
+                String token=userSvcImpl.generalToken(userName, CacheKeyConstant.TOKEN_PLATFORM,CacheKeyConstant.TOKEN_WEB_SIGNTYPE);
+                TokenUtil.writeCookie(userName,token,request,response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response, String userName) throws AuthenticationException {
 
-        User user=userSvcImpl.getUserByUserName(userName);
+        User user= null;
+        try {
+            user = userSvcImpl.getUserByUserName(userName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (user!= null) {
             String username = user.getUserName();

@@ -74,7 +74,7 @@ public class ErrorCode {
 	
 	// ===================== 3、申请，30000开头======================
 	public static int APPLICATION_GOLD_NOT_ENOUGH = 30001;//金币余额不足
-	public static int QUESTION_ANSWER_NOT_EXIST = 30002;//答疑详情不存在
+	public static int APPLICATION_AUTH_NOT_IDENTIFY = 30002;//未认证
 	
 	// ===================== 4、消息错误，40000开头======================
 	public static int MSG_NOT_EXIST = 40001;

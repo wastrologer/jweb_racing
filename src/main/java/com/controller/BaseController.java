@@ -167,6 +167,20 @@ public class BaseController {
 		return map;
 	}
 
+    public Map<String, Object> getStrMap(List list,Integer totalAccount,String str,Object obj,String str1,Object obj1,String str11,Object obj11) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> juniorMap = new HashMap<String, Object>();
+        map.put("errorCode", ErrorCode.OPERATE_SUCCESS_CODE);
+        juniorMap.put("list", list);
+        juniorMap.put("totalAccount",totalAccount);
+        juniorMap.put(str,obj);
+        juniorMap.put(str1, obj1);
+        juniorMap.put(str11, obj11);
+        map.put("data", juniorMap);
+        map.put("msg", "成功");
+        return map;
+    }
+
 	public Map<String, Object> getStrMap(String str,Object obj,String str1,Object obj1,String str2,Object obj2) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		Map<String, Object> juniorMap = new HashMap<String, Object>();
@@ -202,7 +216,7 @@ public class BaseController {
 		map.put("errorCode", ErrorCode.STANDARD_ERROR_CODE);
 		map.put("data", obj);
 		map.put("msg", s);
-		logger.warn(s,map);
+		logger.warn(s+obj,map);
 		return map;
 	}
 
@@ -212,7 +226,7 @@ public class BaseController {
 		map.put("errorCode", ErrorCode.STANDARD_ERROR_CODE);
 		map.put("data", s);
 		map.put("msg", "操作失败");
-		logger.warn("操作失败",map);
+		logger.warn("操作失败"+s,map);
 		return map;
 	}
 
@@ -221,7 +235,7 @@ public class BaseController {
 		map.put("errorCode", ErrorCode.USER_LOGIN_ERROR_UNLOGIN);
 		map.put("data", null);
 		map.put("msg", "用户未登录");
-		logger.warn("操作失败",map);
+		logger.warn("用户未登录或拿不到登录状态",map);
 		return map;
 	}
 

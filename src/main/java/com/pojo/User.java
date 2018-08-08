@@ -32,11 +32,52 @@ public class User {
     private Integer userType;
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
+    private Timestamp loginTime;
+    private String authenticationTime;
     public Boolean getMutualConcerned() {
         return mutualConcerned;
     }
-    private Timestamp loginTime;
     private Integer isDisable;//不填，1不可用，2可用（是否拉黑）
+    private Integer nicknameChanged;//Nickname 是否改动过
+
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", authId='" + authId + '\'' +
+                ", regionId=" + regionId +
+                ", userName='" + userName + '\'' +
+                ", password='" + password + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", userPic='" + userPic + '\'' +
+                ", backdrop='" + backdrop + '\'' +
+                ", userGold=" + userGold +
+                ", userCoin=" + userCoin +
+                ", inviteNum=" + inviteNum +
+                ", concern=" + concern +
+                ", fans=" + fans +
+                ", inviteCode='" + inviteCode + '\'' +
+                ", signature='" + signature + '\'' +
+                ", nickname='" + nickname + '\'' +
+                ", concerned=" + concerned +
+                ", inviteUserId=" + inviteUserId +
+                ", mutualConcerned=" + mutualConcerned +
+                ", userType=" + userType +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", loginTime=" + loginTime +
+                ", isDisable=" + isDisable +
+                '}';
+    }
+
+    public Integer getNicknameChanged() {
+        return nicknameChanged;
+    }
+
+    public void setNicknameChanged(Integer nicknameChanged) {
+        this.nicknameChanged = nicknameChanged;
+    }
 
     public Integer getIsDisable() {
         return isDisable;
@@ -232,21 +273,11 @@ public class User {
         this.nickname = nickname;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", authId='" + authId + '\'' +
-                ", regionId=" + regionId +
-                ", userName='" + userName + '\'' +
-                ", password='" + password + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", userPic='" + userPic + '\'' +
-                ", userGold=" + userGold +
-                ", userCoin=" + userCoin +
-                ", inviteCode='" + inviteCode + '\'' +
-                ", signature='" + signature + '\'' +
-                ", nickname='" + nickname + '\'' +
-                '}';
-    }
+	public String getAuthenticationTime() {
+		return authenticationTime;
+	}
+
+	public void setAuthenticationTime(String authenticationTime) {
+		this.authenticationTime = authenticationTime;
+	}
 }

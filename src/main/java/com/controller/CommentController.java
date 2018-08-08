@@ -1,7 +1,6 @@
 package com.controller;
 
 import com.common.cache.CacheClient;
-import com.common.mq.MsgProducer;
 import com.common.utils.SvcUtils;
 import com.constant.ErrorCode;
 import com.github.pagehelper.PageInfo;
@@ -12,6 +11,8 @@ import com.pojo.UserToken;
 import com.service.ICommentSvc;
 import com.service.IEssaySvc;
 import com.service.IUserSvc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +25,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/comment")
 public class CommentController extends BaseController {
+    protected static final Logger logger = LoggerFactory.getLogger(CommentController.class);
+
     @Resource
     private IUserSvc userSvcImpl;
     @Resource
@@ -34,8 +37,7 @@ public class CommentController extends BaseController {
     private CacheClient cacheClient;
     @Resource
     private ICommentSvc commentSvcImpl;
-    @Resource
-    private MsgProducer msgProducer;
+
 
     /*getCommentByEssayId*/
     @RequestMapping("/customer/getCommentByEssayId")
@@ -50,16 +52,19 @@ public class CommentController extends BaseController {
                 if(user!=null){
                     PageInfo<Comment> seniorPageInfo=commentSvcImpl.getSeniorCommentByEssayIdAndPage(essayId,num,size);
                     List<Comment> seniorList=seniorPageInfo.getList();
+                    svcUtils.setCommentListRecommendedAndAuthId((int)uk.getUserId(),seniorList);
                     for(Comment c:seniorList){
                         c.setRecommended(svcUtils.judgeCommentRecommended(user.getUserId(),c.getCommentId()));
                         User su=userSvcImpl.getUserById(c.getUserId());
                         c.setUserPic(su.getUserPic());
-                        PageInfo<Comment> juniorPageInfo=commentSvcImpl.getJuniorCommentByCommentIdAndPage(c.getCommentId(),null,999);
-                        for(Comment jc:juniorPageInfo.getList()){
+                        PageInfo<Comment> juniorPageInfo=commentSvcImpl.getJuniorCommentByCommentIdAndPage(c.getCommentId(),
+                                null,999);
+                        svcUtils.setCommentListRecommendedAndAuthId((int)uk.getUserId(),juniorPageInfo.getList());
+/*                        for(Comment jc:juniorPageInfo.getList()){
                             jc.setRecommended(svcUtils.judgeCommentRecommended(user.getUserId(),jc.getCommentId()));
                             User ju=userSvcImpl.getUserById(jc.getUserId());
                             jc.setUserPic(ju.getUserPic());
-                        }
+                        }*/
                         c.setJuniorComments(juniorPageInfo.getList());
                     }
                     return getStrMap(seniorPageInfo);
@@ -67,6 +72,7 @@ public class CommentController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -103,6 +109,7 @@ public class CommentController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -159,6 +166,7 @@ public class CommentController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }

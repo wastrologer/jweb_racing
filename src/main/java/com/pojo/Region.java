@@ -10,6 +10,18 @@ public class Region {
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Region{" +
+                "regionId=" + regionId +
+                ", regionName='" + regionName + '\'' +
+                ", cityName='" + cityName + '\'' +
+                ", provinceName='" + provinceName + '\'' +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Timestamp getCreateTime() {
         return createTime;
     }

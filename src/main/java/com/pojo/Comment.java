@@ -21,6 +21,47 @@ public class Comment {
     private Integer     recommendNum;
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
+    private Integer     isDel;//1是2否
+    private String authId;//作者auth
+
+    @Override
+    public String toString() {
+        return "Comment{" +
+                "commentId=" + commentId +
+                ", userId=" + userId +
+                ", userNickname='" + userNickname + '\'' +
+                ", essayId=" + essayId +
+                ", commentContent='" + commentContent + '\'' +
+                ", commentGrade=" + commentGrade +
+                ", commentSequence=" + commentSequence +
+                ", seniorCommentId=" + seniorCommentId +
+                ", publishTime=" + publishTime +
+                ", topicId=" + topicId +
+                ", juniorComments=" + juniorComments +
+                ", recommended=" + recommended +
+                ", userPic='" + userPic + '\'' +
+                ", recommendNum=" + recommendNum +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", isDel=" + isDel +
+                '}';
+    }
+
+    public String getAuthId() {
+        return authId;
+    }
+
+    public void setAuthId(String authId) {
+        this.authId = authId;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
 
     public Boolean getRecommended() {
         return recommended;
@@ -60,21 +101,6 @@ public class Comment {
 
     public void setLastUpdateTime(Timestamp lastUpdateTime) {
         this.lastUpdateTime = lastUpdateTime;
-    }
-
-    @Override
-    public String toString() {
-        return "Comment{" +
-                "commentId=" + commentId +
-                ", userId=" + userId +
-                ", essayId=" + essayId +
-                ", commentContent='" + commentContent + '\'' +
-                ", commentGrade=" + commentGrade +
-                ", commentSequence=" + commentSequence +
-                ", seniorCommentId=" + seniorCommentId +
-                ", publishTime=" + publishTime +
-                ", topicId=" + topicId +
-                '}';
     }
 
     public String getUserNickname() {

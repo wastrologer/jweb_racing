@@ -3,9 +3,9 @@ package com.common.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.common.cache.CacheClient;
 import com.common.entity.Constants;
+import com.common.entity.SMSCountVo;
 import com.common.entity.SMSVo;
 import com.constant.ErrorCode;
-import com.common.entity.SMSCountVo;
 import net.rubyeye.xmemcached.GetsResponse;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -27,10 +27,15 @@ import java.util.Random;
 
 public class SendSMS {
 	private static final String encode = "utf8";
-	private static final String accountSid = "e566d84ae1f76d24e6b8e3a9ee1cd23c";
-	private static final String authToken = "a2e5d79cf40def92307ba2c154eb99ef";
-	private static final String restURL = "https://api.ucpaas.com/2014-06-30/Accounts/e566d84ae1f76d24e6b8e3a9ee1cd23c/Messages/templateSMS";
-	private static final String appID = "af5cca2a028d4280a203a3f1db4d6be4";
+	private static final String accountSid = "f657a3aaf16b159b1819de53b8b0260b";
+	private static final String authToken = "07f80e4367d588ad084d95721ecd12b6";
+	private static final String restURL = "https://api.ucpaas.com/2014-06-30/Accounts/f657a3aaf16b159b1819de53b8b0260b/Messages/templateSMS";
+	private static final String appID = "ed83e5892df6479a9c453461abb09e72";
+
+/*	AppID：ed83e5892df6479a9c453461abb09e72
+	Account Sid：f657a3aaf16b159b1819de53b8b0260b
+	Auth Token：07f80e4367d588ad084d95721ecd12b6
+	Rest URL：https://open.ucpaas.com/ol/sms/{function}*/
 
 	/*AppID（应用ID）：c719ae524dc14097a202e69f36dc27ad
 Account Sid（用户sid）：e566d84ae1f76d24e6b8e3a9ee1cd23c

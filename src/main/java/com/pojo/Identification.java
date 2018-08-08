@@ -12,6 +12,20 @@ public class Identification {
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Identification{" +
+                "pic=" + pic +
+                ", nickname=" + nickname +
+                ", essays=" + essays +
+                ", signature=" + signature +
+                ", fans=" + fans +
+                ", isIdentified=" + isIdentified +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Timestamp getCreateTime() {
         return createTime;
     }

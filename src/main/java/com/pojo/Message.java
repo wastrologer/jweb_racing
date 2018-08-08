@@ -16,6 +16,21 @@ public class Message implements Serializable{
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId=" + messageId +
+                ", messageUserId=" + messageUserId +
+                ", messageContent='" + messageContent + '\'' +
+                ", isRead=" + isRead +
+                ", messageEssayId=" + messageEssayId +
+                ", messageType=" + messageType +
+                ", senderUserId=" + senderUserId +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Timestamp getCreateTime() {
         return createTime;
     }

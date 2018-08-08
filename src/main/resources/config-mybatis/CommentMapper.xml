@@ -37,6 +37,9 @@
             <if test="topicId != null ">
                 AND comment.topic_id =#{topicId}
             </if>
+            <if test="isDel != null ">
+                AND comment.is_del =#{isDel}
+            </if>
         </where>
     </sql>
 

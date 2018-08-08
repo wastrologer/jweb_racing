@@ -20,12 +20,11 @@ public class CommonEnum {
 	    }
 	 
 	 public enum SMSTemplateId {
-		 	//直通车短信模板id 153487 绑定手机验证码    153480 用户支付成功短信通知经理    153486 验证消费通知商家   153483 用户退款短信通知经理    153485 消费验证成功后通知用户
-		 	BINDINGSMS_CODE(153487),
-		 	REFUND_TO_HANDLE(153483),
+		 	BINDINGSMS_CODE(352471);
+/*		 	REFUND_TO_HANDLE(153483),
 		 	PAY_SUCCESS_TO_HANDLE(153480),
 		 	VALIDATE_CODE_TO_SHOP(153486),
-		 	VALIDATE_CODE_TO_USER(153485);
+		 	VALIDATE_CODE_TO_USER(153485);*/
 	    	public int value;
 	    	
 	    	SMSTemplateId(int value) {
@@ -56,6 +55,16 @@ public class CommonEnum {
 	        }
 	        public byte value;
 	    }
+	 public enum AuthAuditState {
+			//认证审核状态：1待审核 2审核通过 3审核不通过
+		 	AUDITING((byte) 1),
+			ADOPT((byte) 2),
+			NOT_ADOPT((byte) 3);
+		 AuthAuditState(byte value) {
+		            this.value = value;
+		        }
+		        public byte value;
+		    }
 	 
 	 public enum CommodityOrderStatue {
 		//订单状态：1未支付 2已支付 3已消费 4已评价  5申请退款 6退款成功 7交易关闭 8取消待支付订单 9其他原因商户系统发起退款请求失败  10用户账户问题导致退款失败  11商品下架退款

@@ -13,6 +13,20 @@ public class Topic {
 
     private Long partakeNum;
 
+    @Override
+    public String toString() {
+        return "Topic{" +
+                "topicId=" + topicId +
+                ", topicName='" + topicName + '\'' +
+                ", topicPic='" + topicPic + '\'' +
+                ", commentNum=" + commentNum +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", isShow=" + isShow +
+                ", partakeNum=" + partakeNum +
+                '}';
+    }
+
     public Integer getIsShow() {
         return isShow;
     }

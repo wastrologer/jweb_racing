@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dao.mapper.AdvertMapper" >
+  <resultMap id="BaseResultMap" type="com.pojo.Advert" >
+    <id column="advert_id" property="advertId" jdbcType="BIGINT" />
+    <result column="customer_name" property="customerName" jdbcType="VARCHAR" />
+    <result column="advert_title" property="advertTitle" jdbcType="VARCHAR" />
+    <result column="advert_image" property="advertImage" jdbcType="VARCHAR" />
+    <result column="advert_url" property="advertUrl" jdbcType="VARCHAR" />
+    <result column="online_time" property="onlineTime" jdbcType="TIMESTAMP" />
+    <result column="downline_time" property="downlineTime" jdbcType="TIMESTAMP" />
+    <result column="advert_position" property="advertPosition" jdbcType="INTEGER" />
+    <result column="browse_num" property="browseNum" jdbcType="BIGINT" />
+    <result column="click_num" property="clickNum" jdbcType="BIGINT" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="lastUpdateTime" property="lastupdatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    advert_id, customer_name, advert_title, advert_image, advert_url, online_time, downline_time, 
+    advert_position, browse_num, click_num, state, is_del, create_time, lastUpdateTime
+  </sql>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from advert
+    where advert_id = #{advertId,jdbcType=BIGINT}
+  </select>
+  <select id="selectByPosition" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select
+    <include refid="Base_Column_List" />
+    from advert
+    where advert_position = #{advertPosition}
+    AND is_del=2
+    AND unix_timestamp( now() ) between unix_timestamp(online_time) and unix_timestamp( downline_time )
+    order BY lastUpdateTime DESC
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from advert
+    where advert_id = #{advertId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.pojo.Advert" >
+    insert into advert (advert_id, customer_name, advert_title, 
+      advert_image, advert_url, online_time, 
+      downline_time, advert_position, browse_num, 
+      click_num, state, is_del, 
+      create_time, lastUpdateTime)
+    values (#{advertId,jdbcType=BIGINT}, #{customerName,jdbcType=VARCHAR}, #{advertTitle,jdbcType=VARCHAR}, 
+      #{advertImage,jdbcType=VARCHAR}, #{advertUrl,jdbcType=VARCHAR}, #{onlineTime,jdbcType=TIMESTAMP}, 
+      #{downlineTime,jdbcType=TIMESTAMP}, #{advertPosition,jdbcType=INTEGER}, #{browseNum,jdbcType=BIGINT}, 
+      #{clickNum,jdbcType=BIGINT}, #{state,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{lastupdatetime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.pojo.Advert" >
+    insert into advert
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="advertId != null" >
+        advert_id,
+      </if>
+      <if test="customerName != null" >
+        customer_name,
+      </if>
+      <if test="advertTitle != null" >
+        advert_title,
+      </if>
+      <if test="advertImage != null" >
+        advert_image,
+      </if>
+      <if test="advertUrl != null" >
+        advert_url,
+      </if>
+      <if test="onlineTime != null" >
+        online_time,
+      </if>
+      <if test="downlineTime != null" >
+        downline_time,
+      </if>
+      <if test="advertPosition != null" >
+        advert_position,
+      </if>
+      <if test="browseNum != null" >
+        browse_num,
+      </if>
+      <if test="clickNum != null" >
+        click_num,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="lastupdatetime != null" >
+        lastUpdateTime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="advertId != null" >
+        #{advertId,jdbcType=BIGINT},
+      </if>
+      <if test="customerName != null" >
+        #{customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="advertTitle != null" >
+        #{advertTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="advertImage != null" >
+        #{advertImage,jdbcType=VARCHAR},
+      </if>
+      <if test="advertUrl != null" >
+        #{advertUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="onlineTime != null" >
+        #{onlineTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="downlineTime != null" >
+        #{downlineTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="advertPosition != null" >
+        #{advertPosition,jdbcType=INTEGER},
+      </if>
+      <if test="browseNum != null" >
+        #{browseNum,jdbcType=BIGINT},
+      </if>
+      <if test="clickNum != null" >
+        #{clickNum,jdbcType=BIGINT},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastupdatetime != null" >
+        #{lastupdatetime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.pojo.Advert" >
+    update advert
+    <set >
+      <if test="customerName != null" >
+        customer_name = #{customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="advertTitle != null" >
+        advert_title = #{advertTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="advertImage != null" >
+        advert_image = #{advertImage,jdbcType=VARCHAR},
+      </if>
+      <if test="advertUrl != null" >
+        advert_url = #{advertUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="onlineTime != null" >
+        online_time = #{onlineTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="downlineTime != null" >
+        downline_time = #{downlineTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="advertPosition != null" >
+        advert_position = #{advertPosition,jdbcType=INTEGER},
+      </if>
+      <if test="browseNum != null" >
+        browse_num =browse_num + #{browseNum,jdbcType=BIGINT},
+      </if>
+      <if test="clickNum != null" >
+        click_num = click_num + #{clickNum,jdbcType=BIGINT},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastupdatetime != null" >
+        lastUpdateTime = #{lastupdatetime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where advert_id = #{advertId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.pojo.Advert" >
+    update advert
+    set customer_name = #{customerName,jdbcType=VARCHAR},
+      advert_title = #{advertTitle,jdbcType=VARCHAR},
+      advert_image = #{advertImage,jdbcType=VARCHAR},
+      advert_url = #{advertUrl,jdbcType=VARCHAR},
+      online_time = #{onlineTime,jdbcType=TIMESTAMP},
+      downline_time = #{downlineTime,jdbcType=TIMESTAMP},
+      advert_position = #{advertPosition,jdbcType=INTEGER},
+      browse_num = #{browseNum,jdbcType=BIGINT},
+      click_num = #{clickNum,jdbcType=BIGINT},
+      state = #{state,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      lastUpdateTime = #{lastupdatetime,jdbcType=TIMESTAMP}
+    where advert_id = #{advertId,jdbcType=BIGINT}
+  </update>
+</mapper>

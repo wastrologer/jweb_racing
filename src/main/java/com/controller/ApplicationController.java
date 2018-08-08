@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.common.cache.CacheClient;
+import com.common.entity.Constants;
 import com.common.utils.SvcUtils;
 import com.constant.ErrorCode;
 import com.github.pagehelper.PageInfo;
@@ -9,6 +10,8 @@ import com.pojo.User;
 import com.pojo.UserToken;
 import com.service.IApplicationSvc;
 import com.service.IUserSvc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +23,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/application")
 public class ApplicationController extends BaseController {
+    protected static final Logger logger = LoggerFactory.getLogger(ApplicationController.class);
+
     @Resource
     private IUserSvc userSvcImpl;
     @Resource
@@ -48,6 +53,7 @@ public class ApplicationController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
+            logger.error("error",e);
             return map;
         }
         Map<String, Object> map = getUnlogedErrorMap();
@@ -57,6 +63,7 @@ public class ApplicationController extends BaseController {
     @RequestMapping("/customer/applyCash")
     @ResponseBody
     public Map<String, Object> applyCash(@RequestParam(value="goldNum", required=true)Integer goldNum,
+                                         @RequestParam(value="phoneNumber", required=true)String phoneNumber,
                                          @RequestParam(value="alipayAccount", required=true)String alipayAccount,
                                          @RequestParam(value="alipayName", required=true)String alipayName){
         try {
@@ -64,10 +71,13 @@ public class ApplicationController extends BaseController {
             if(uk!=null){
                 User user= userSvcImpl.getUserById((int)uk.getUserId());
                 if(user!=null){
+                    if(!user.getAuthId().equals(Constants.IDENTIFICATION_AUTH_ID)){
+                        return getErrorMap(ErrorCode.APPLICATION_AUTH_NOT_IDENTIFY,"用户不是认证用户");
+                    }
                     int result=-1;
-                    String reason="金币余额不足";
-                    if(goldNum<=user.getUserGold()){
-                        result=applicationSvcImpl.addApplicationWithUser(user.getUserId(),goldNum,alipayAccount,alipayName);
+                    String reason="金币余额不足或提现金币小于50";
+                    if(goldNum<=user.getUserGold()&&goldNum>=50){
+                        result=applicationSvcImpl.addApplicationWithAccountAndGold(user.getUserId(),goldNum,alipayAccount,alipayName,phoneNumber);
                         if(result==1){
                             reason="申请成功";
                             return getStrMap("result",result,"reason",reason);
@@ -79,6 +89,7 @@ public class ApplicationController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -107,6 +118,7 @@ public class ApplicationController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }

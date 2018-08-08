@@ -29,19 +29,19 @@ public class CollectionSvcImpl implements ICollectionSvc {
 
 
     @Override
-    public Integer countCollectionByCondition(com.pojo.Collection collection) {
+    public Integer countCollectionByCondition(com.pojo.Collection collection)throws Exception {
         return collectionaaMapper.countCollectionByCondition(collection);
     }
 
     @Override
-    public Integer countCollectionByEssayId(Integer essayId) {
+    public Integer countCollectionByEssayId(Integer essayId)throws Exception {
         Collection collection=new Collection();
         collection.setEssayId(essayId);
         return countCollectionByCondition(collection);
     }
 
     @Override
-    public PageInfo getCollectionByConditionAndPage(com.pojo.Collection collection, Integer pageNum, Integer pageSize) {
+    public PageInfo getCollectionByConditionAndPage(com.pojo.Collection collection, Integer pageNum, Integer pageSize)throws Exception {
         if(pageNum==null)
             pageNum=1;
         if(pageSize==null||pageSize<=0)
@@ -53,12 +53,12 @@ public class CollectionSvcImpl implements ICollectionSvc {
     }
 
     @Override
-    public PageInfo getCollectionByConditionAndPage(com.pojo.Collection collection, Integer pageNum) {
+    public PageInfo getCollectionByConditionAndPage(com.pojo.Collection collection, Integer pageNum)throws Exception {
         return getCollectionByConditionAndPage(collection,pageNum,defaultPageSize);
     }
 
     @Override
-    public Integer addCollection(User user, com.pojo.Collection collection) {
+    public Integer addCollection(User user, com.pojo.Collection collection)throws Exception {
         if(user==null)
             return null;
         collection.setUserId(user.getUserId());
@@ -66,21 +66,21 @@ public class CollectionSvcImpl implements ICollectionSvc {
     }
 
     @Override
-    public Integer addCollection(User user, Integer essayId) {
+    public Integer addCollection(User user, Integer essayId)throws Exception {
         Collection collection=new Collection();
         collection.setEssayId(essayId);
         return addCollection(user,collection);
     }
 
     @Override
-    public Integer updateCollection(User user, com.pojo.Collection collection) {
+    public Integer updateCollection(User user, com.pojo.Collection collection)throws Exception {
         if(user==null||user.getUserId()!=collection.getUserId())
             return null;
         return updateCollection(collection);
     }
 
     @Override
-    public Integer deleteCollectionByCondition(User user, com.pojo.Collection collection) {
+    public Integer deleteCollectionByCondition(User user, com.pojo.Collection collection)throws Exception {
         Collection c=getCollectionByAccurateCondition(collection);
         if(collection.getEssayId()==null||user.getUserId()==null||user.getUserId()!=c.getUserId())
             return null;
@@ -88,7 +88,7 @@ public class CollectionSvcImpl implements ICollectionSvc {
     }
 
     @Override
-    public Integer deleteCollectionByEssayId(int userId, int essayId) {
+    public Integer deleteCollectionByEssayId(int userId, int essayId)throws Exception {
         Collection collection=new Collection();
         collection.setEssayId(essayId);
         collection.setUserId(userId);
@@ -96,31 +96,49 @@ public class CollectionSvcImpl implements ICollectionSvc {
     }
 
     @Override
-    public Integer addCollection(com.pojo.Collection collection) {
+    public Integer addCollection(com.pojo.Collection collection)throws Exception {
 
         collection.setCreateTime(new Timestamp(System.currentTimeMillis()));
         collection.setCollectionTime(new Timestamp(System.currentTimeMillis()));
         int cNum=collectionaaMapper.addCollection(collection);
         logger.info("collectionMapper.addCollection结果为"+cNum);
+        if(cNum!=1){
+            throw new Exception(collection.toString());
+        }
         return cNum;
     }
 
 
 
     @Override
-    public com.pojo.Collection getCollectionByAccurateCondition(com.pojo.Collection collection) {
+    public com.pojo.Collection getCollectionByAccurateCondition(com.pojo.Collection collection)throws Exception {
         List<com.pojo.Collection> result=collectionaaMapper.getCollectionByCondition(collection);
+        if(result.size()!=1){
+            logger.info(collection.toString());
+        }
         return svcUtils.judgeResultList(result);
     }
 
     @Override
-    public Integer updateCollection(com.pojo.Collection collection) {
-        return collectionaaMapper.updateCollection(collection);
+    public Integer updateCollection(com.pojo.Collection collection)throws Exception {
+        int i= collectionaaMapper.updateCollection(collection);
+        if(i!=1){
+            throw new Exception(collection.toString());
+        }
+        return i;
     }
 
     @Override
-    public Integer deleteCollectionByCondition(Collection collection) {
-        return collectionaaMapper.deleteCollectionByCondition(collection);
+    public Integer deleteCollectionByCondition(Collection collection)throws Exception {
+        int i= collectionaaMapper.deleteCollectionByCondition(collection);
+        if(i!=1){
+            throw new Exception(collection.toString());
+        }
+        return i;
+    }
+
+    public static Logger getLogger() {
+        return logger;
     }
 
     public Integer getDefaultPageSize() {
@@ -139,11 +157,19 @@ public class CollectionSvcImpl implements ICollectionSvc {
         this.cacheClient = cacheClient;
     }
 
-    public CollectionMapper getCollectionMapper() {
+    public CollectionMapper getCollectionaaMapper() {
         return collectionaaMapper;
     }
 
-    public void setCollectionMapper(CollectionMapper collectionMapper) {
-        this.collectionaaMapper = collectionMapper;
+    public void setCollectionaaMapper(CollectionMapper collectionaaMapper) {
+        this.collectionaaMapper = collectionaaMapper;
+    }
+
+    public SvcUtils getSvcUtils() {
+        return svcUtils;
+    }
+
+    public void setSvcUtils(SvcUtils svcUtils) {
+        this.svcUtils = svcUtils;
     }
 }

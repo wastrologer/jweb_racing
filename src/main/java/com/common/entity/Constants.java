@@ -31,9 +31,9 @@ public class Constants {
     public static final String IDENTIFICATION_AUTH_ID = "ROLE_IDENTIFICATION";
     public static final String ADMIN_AUTH_ID = "ROLE_ADMIN";
 
-    public static final Integer INDENTIFICATION_FANS_NUM = 30;
+    public static final Integer INDENTIFICATION_FANS_NUM = 300;
     public static final Integer INDENTIFICATION_RECOMMEND_ESSAY_NUM = 3;
-    public static final Integer INDENTIFICATION_RECOMMEND_NUM = 50;
+    //public static final Integer INDENTIFICATION_RECOMMEND_NUM = 30;
 
     public static final String NOTICE_EXIST = "noticeExist";
     public static final String NOTICE_STATUS = "noticeStatus";
@@ -46,7 +46,7 @@ public class Constants {
     public static final int HOT_COMMENT_NUM_FROM = 2;
 
     public static final  List<Integer> ARTICLE_ESSAY_TYPES = Arrays.asList(1, 2, 3);
-    public static final int RECOMMEND_NUM_FROM = 2;
+    public static final int RECOMMEND_NUM_FROM = 30;
     public static final int IS_PUBLISHED = 1;
     public static final int MSG_IS_NOT_READ = 0;
     public static final int SPECIFIED_DAY_NUM= -2;
@@ -65,7 +65,7 @@ public class Constants {
     
     public static final String FORUM_U_TOKEN_KEY = "FORUM_U_TOKEN_KEY#";
 
-    public static final String REG_MOBILE = "^(1[4|3|6|7|8]\\d{9}|15[012356789]\\d{8})$"; // 手机号码正则
+    public static final String REG_MOBILE = "^1\\d{10}$"; // 手机号码正则
 
     public static final String USERNAME_MOBILE = "^[0-9A-Za-z]{5,16}$";  //用户名正则：必须由字母或数字构成，长度在5~16位
 
@@ -82,14 +82,7 @@ public class Constants {
     public static final String POSTFIX_AUDIO = "mp3|3ga|m4a|wav";// 音频后缀
 
     public static final String EXCEPTION_INFO = "服务访问出现问题，请稍后重试";
-    
-    public static final String ID_GENERATE_NAME = "orderNo";	//商店商品订单号生成模块名,与db对应
-    
-    public static final String ID_PLATFORM_NAME = "productOrderNo";	//平台产品订单号生成模块名,与db对应
-    
-    public static final String ID_VOUCHER_NAME = "voucherOrderNo";	//平台抵用券订单号生成模块名,与db对应
-    
-    public static final String ID_SHOP_WITHDRAW_NAME = "shopWithdrawOrderNo";	//商户提现订单id
+
     
     public static final Integer IMAGE_CODE_COUNT_EXPIRE_SECOND = 86400; // ip访问条数过期时间
     public static final Integer DEFAULT_DAY_MAX_IMAGE_CODE = 50; // 默认ip访问每天最大访问量
@@ -113,41 +106,7 @@ public class Constants {
     public static final String SMS_LOGIN_PASSWD_COUNT_KEY_STR = "didi_loginPwdSmsCountKey#"; // memcache登录发送数量记录key
     
     public static final int TEAM_ORDER_COUNT = 3;
-    
-    public static final int REWARD_SIGN_VIP = 10; //单人奖励vip 10天
-    
-    public static final int REWARD_TEAM_VIP = 5; //团购奖励vip 5天
-     
-    public static final int PUNISH_VIP = -10;//处罚vip
-    
-    public static final int PUNISH_EXPERIENCE  = -100;//处罚经验
-    
-    public static final int INVITE_REWARD_VIP = 10; //邀请好友奖励vip
-    
-    public static final String CONSUM_ORDER_TITAL = "订单核销通知";
-    
-    public static final String REWARDTITAL = "奖励通知";
-    
-    public static final String PUNISHTITAL = "处罚通知";
-    
-    public static final String ACTIVITYTITAL = "活动通知";
-    
-    public static final String MEMBERTITAL = "会员通知";
-
-    public static final String DEFAULT_SIGNATURE = "这个人是兄贵，什么也没有留下：（";
-
-    public static final String DEFAULT_USER_PIC = "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1527660236355&di=f641fcde8c51587601ff57345338dcb0&imgtype=0&src=http%3A%2F%2Fimg.zcool.cn%2Fcommunity%2F01f343596de3e1a8012193a36fefb4.jpg%402o.jpg";
-
-    public static final int TEAM_POINTS = -20; //用户开团最低经验
-    
-    public static final int TEAM_TIME = 6;	//团队订单有效时长
-
-    public static final String COMPANY_TEAM_TIME  = "HOUR";	//单位 HOUR  MINUTE
-    
-    public static final int OFF_LINE_BEFOR_TIME = 6;	//商品下架前几个小时不能购买
-    public static final String COMPANY_OFF_LINE_BEFOR_TIME  = "HOUR";	//单位
 
     public static final int INVITE_COIN_REWARD= 10;
 
-    public static final long REDUCE_PRICE = 2000;	//代金券抵用面额最低不能低于20块
 }

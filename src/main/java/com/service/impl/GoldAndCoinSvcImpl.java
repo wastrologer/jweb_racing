@@ -38,12 +38,12 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
     IUserSvc userSvcImpl;
 
     @Override
-    public Integer countCoinByCondition(Coin coin) {
+    public Integer countCoinByCondition(Coin coin)throws Exception {
         return coinMapper.countCoinByCondition(coin);
     }
 
     @Override
-    public PageInfo getCoinByConditionAndPage(Coin coin, Integer pageNum, Integer pageSize) {
+    public PageInfo getCoinByConditionAndPage(Coin coin, Integer pageNum, Integer pageSize)throws Exception {
         if(pageNum==null)
             pageNum=1;
         if(pageSize==null||pageSize<=0)
@@ -55,12 +55,12 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
     }
 
     @Override
-    public PageInfo getCoinByConditionAndPage(Coin coin, Integer pageNum) {
+    public PageInfo getCoinByConditionAndPage(Coin coin, Integer pageNum)throws Exception {
         return getCoinByConditionAndPage(coin,pageNum,defaultPageSize);
     }
     @Transactional
     @Override
-    public Integer addCoinWithUser(Integer userId, Integer coinNum,String reason) {
+    public Integer addCoinWithUser(Integer userId, Integer coinNum,String reason)throws Exception {
         User user=new User();
         user.setUserId(userId);
         user.setUserCoin(coinNum);
@@ -69,14 +69,14 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
 
         if(i!=null&&i==1) 
             return addCoinOnly(userId,coinNum,reason);
-        else 
-            return null;
+        else
+            throw new Exception(user.toString());
     }
 
 
 
     @Override
-    public Integer addCoinOnly(Integer userId, Integer coinNum,String reason) {
+    public Integer addCoinOnly(Integer userId, Integer coinNum,String reason)throws Exception {
         Coin coin=new Coin();
         coin.setCoinRecordTime(new Timestamp(System.currentTimeMillis()));
         coin.setCoinUserId(userId);
@@ -91,24 +91,31 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
 
 
     @Override
-    public Coin getCoinByAccurateCondition(Coin coin) {
+    public Coin getCoinByAccurateCondition(Coin coin)throws Exception {
         List<Coin> result= coinMapper.getCoinByCondition(coin);
+        if(result.size()!=1){
+            logger.info(coin.toString());
+        }
         return svcUtils.judgeResultList(result);
     }
 
     @Override
-    public Integer updateCoin(Coin coin) {
-        return coinMapper.updateCoin(coin);
+    public Integer updateCoin(Coin coin)throws Exception {
+        int i= coinMapper.updateCoin(coin);
+        if(i!=1){
+            throw new Exception(coin.toString());
+        }
+        return  i;
     }
     
     
     @Override
-    public Integer countGoldByCondition(Gold gold) {
+    public Integer countGoldByCondition(Gold gold)throws Exception {
         return goldMapper.countGoldByCondition(gold);
     }
 
     @Override
-    public PageInfo getGoldByConditionAndPage(Gold gold, Integer pageNum, Integer pageSize) {
+    public PageInfo getGoldByConditionAndPage(Gold gold, Integer pageNum, Integer pageSize)throws Exception {
         if(pageNum==null)
             pageNum=1;
         if(pageSize==null||pageSize<=0)
@@ -120,12 +127,12 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
     }
 
     @Override
-    public PageInfo getGoldByConditionAndPage(Gold gold, Integer pageNum) {
+    public PageInfo getGoldByConditionAndPage(Gold gold, Integer pageNum)throws Exception {
         return getGoldByConditionAndPage(gold,pageNum,defaultPageSize);
     }
     @Transactional
     @Override
-    public Integer addGoldWithUser(Integer userId, Integer goldNum,String reason) {
+    public Integer addGoldWithUser(Integer userId, Integer goldNum,String reason)throws Exception {
         User user=new User();
         user.setUserId(userId);
         user.setUserGold(goldNum);
@@ -135,13 +142,13 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
         if(i!=null&&i==1)
             return addGoldOnly(userId,goldNum,reason);
         else
-            return null;
+            throw new Exception(user.toString());
     }
 
 
 
     @Override
-    public Integer addGoldOnly(Integer userId, Integer goldNum,String reason) {
+    public Integer addGoldOnly(Integer userId, Integer goldNum,String reason)throws Exception {
         Gold gold=new Gold();
         gold.setGoldRecordTime(new Timestamp(System.currentTimeMillis()));
         gold.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -150,22 +157,35 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
         gold.setGoldReason(reason);
         int cNum= goldMapper.addGold(gold);
         logger.info("goldMapper.addGold结果为"+cNum);
+        if(cNum!=1){
+            throw new Exception(gold.toString());
+        }
         return cNum;
     }
 
 
 
     @Override
-    public Gold getGoldByAccurateCondition(Gold gold) {
+    public Gold getGoldByAccurateCondition(Gold gold)throws Exception {
         List<Gold> result= goldMapper.getGoldByCondition(gold);
+        if(result.size()!=1){
+            logger.info(gold.toString());
+        }
         return svcUtils.judgeResultList(result);
     }
 
     @Override
-    public Integer updateGold(Gold gold) {
-        return goldMapper.updateGold(gold);
+    public Integer updateGold(Gold gold)throws Exception {
+        int i= goldMapper.updateGold(gold);
+        if(i!=1){
+            throw new Exception(gold.toString());
+        }
+        return  i;
     }
-    
+
+    public static Logger getLogger() {
+        return logger;
+    }
 
     public Integer getDefaultPageSize() {
         return defaultPageSize;
@@ -189,5 +209,29 @@ public class GoldAndCoinSvcImpl implements IGoldAndCoinSvc {
 
     public void setGoldMapper(GoldMapper goldMapper) {
         this.goldMapper = goldMapper;
+    }
+
+    public CoinMapper getCoinMapper() {
+        return coinMapper;
+    }
+
+    public void setCoinMapper(CoinMapper coinMapper) {
+        this.coinMapper = coinMapper;
+    }
+
+    public SvcUtils getSvcUtils() {
+        return svcUtils;
+    }
+
+    public void setSvcUtils(SvcUtils svcUtils) {
+        this.svcUtils = svcUtils;
+    }
+
+    public IUserSvc getUserSvcImpl() {
+        return userSvcImpl;
+    }
+
+    public void setUserSvcImpl(IUserSvc userSvcImpl) {
+        this.userSvcImpl = userSvcImpl;
     }
 }

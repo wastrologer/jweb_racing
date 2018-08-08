@@ -4,7 +4,6 @@ package com.pojo;
 import com.common.entity.BaseDo;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 public class Material extends BaseDo {
 	
@@ -29,6 +28,22 @@ public class Material extends BaseDo {
     private Timestamp createTime;
 
     private Timestamp lastUpdateTime;
+
+    @Override
+    public String toString() {
+        return "Material{" +
+                "materialId='" + materialId + '\'' +
+                ", materialFormate=" + materialFormate +
+                ", gatherTime=" + gatherTime +
+                ", gatherDay='" + gatherDay + '\'' +
+                ", materialName='" + materialName + '\'' +
+                ", isdel=" + isdel +
+                ", height=" + height +
+                ", width=" + width +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
 
     public String getMaterialId() {
         return materialId;

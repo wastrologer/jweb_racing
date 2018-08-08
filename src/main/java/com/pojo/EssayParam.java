@@ -8,11 +8,14 @@ public class EssayParam {
     private  boolean isHot;
     private Integer isPublished;//0否
     private List<Integer> exceptionIdList;
-    private List<Integer> regionIdList;
     private List<Integer> userIdList;
+    private List<Integer> regionIdList;
+    private List<Integer> essayTypeList;
+    private Integer cityId;//1深圳，2广州
+    private Integer regionId;
+    private Integer essayType;
     private String essayTitle;
     private String essayContent;
-    private List<Integer> essayTypeList;
     private Integer topicId;
     private List<Integer> topicIdList;
 
@@ -32,6 +35,64 @@ public class EssayParam {
     private Timestamp lastUpdateTime;
     private Integer isHiden=1;//不填，自动生成，1不隐藏，2隐藏
 
+    @Override
+    public String toString() {
+        return "EssayParam{" +
+                "isHot=" + isHot +
+                ", isPublished=" + isPublished +
+                ", exceptionIdList=" + exceptionIdList +
+                ", userIdList=" + userIdList +
+                ", regionIdList=" + regionIdList +
+                ", essayTypeList=" + essayTypeList +
+                ", regionId=" + regionId +
+                ", essayType=" + essayType +
+                ", essayTitle='" + essayTitle + '\'' +
+                ", essayContent='" + essayContent + '\'' +
+                ", topicId=" + topicId +
+                ", topicIdList=" + topicIdList +
+                ", cityId=" + cityId +
+                ", recommendNumFrom=" + recommendNumFrom +
+                ", commentNumFrom=" + commentNumFrom +
+                ", clickNumFrom=" + clickNumFrom +
+                ", publishTimeFrom=" + publishTimeFrom +
+                ", createTimeFrom=" + createTimeFrom +
+                ", recommendNumTo=" + recommendNumTo +
+                ", commentNumTo=" + commentNumTo +
+                ", clickNumTo=" + clickNumTo +
+                ", publishTimeTo=" + publishTimeTo +
+                ", createTimeTo=" + createTimeTo +
+                ", orderBy='" + orderBy + '\'' +
+                ", keywords=" + keywords +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", isHiden=" + isHiden +
+                '}';
+    }
+
+
+    public Integer getRegionId() {
+        return regionId;
+    }
+
+    public void setRegionId(Integer regionId) {
+        this.regionId = regionId;
+    }
+
+    public Integer getEssayType() {
+        return essayType;
+    }
+
+    public void setEssayType(Integer essayType) {
+        this.essayType = essayType;
+    }
+
+    public Integer getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(Integer cityId) {
+        this.cityId = cityId;
+    }
 
     public List<Integer> getTopicIdList() {
         return topicIdList;

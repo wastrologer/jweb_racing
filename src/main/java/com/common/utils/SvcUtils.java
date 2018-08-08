@@ -1,18 +1,18 @@
 package com.common.utils;
 
-import com.common.cache.CacheClient;
 import com.common.entity.Constants;
 import com.dao.mapper.*;
 import com.pojo.*;
-import com.pojo.Collection;
-import net.rubyeye.xmemcached.GetsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Service
 public class SvcUtils {
@@ -32,8 +32,8 @@ public class SvcUtils {
     @Resource
     RegionMapper regionMapper;
 
-    @Resource
-    MessageMapper messageMapper;
+/*    @Resource
+    MessageMapper messageMapper;*/
 
     @Resource
     RecommendMapper recommendMapper;
@@ -42,7 +42,16 @@ public class SvcUtils {
     AccusationMapper accusationMapper;
 
     @Resource
+    OpinionMapper opinionMapper;
+
+    @Resource
     CollectionMapper collectionMapper;
+
+    @Resource
+    AdvertMapper advertMapper;
+    
+    @Resource
+    private AuthAuditMapper authAuditMapper;
 
 /*    @PostConstruct
     *//*在方法上加上注解@PostConstruct，这个方法就会在Bean初始化之后被Spring容器执行
@@ -54,9 +63,73 @@ public class SvcUtils {
         regionMapper=regionMapper1;
         messageMapper=messageMapper1;
     }*/
-    public List<PlatformContact> getAllPlatformContact(){
+
+    /**
+     * 通过位置信息获取广告
+     * @param position
+     * @return
+     * @throws Exception
+     */
+    public Advert getAdvertByPosition(Integer position)throws Exception {
+        List<Advert> adverts=advertMapper.selectByPosition(position);
+        if(adverts.size()==0){
+            return null;
+        }else{
+            return adverts.get(0);
+        }
+    }
+
+    /**
+     * 广告浏览量加1
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    public boolean browseAdvert(Long id)throws Exception {
+        Advert advert=new Advert();
+        advert.setAdvertId(id);
+        advert.setBrowseNum(1L);
+        int i=advertMapper.updateByPrimaryKeySelective(advert);
+        if(i==1){
+            return true;
+        }else{
+            throw new Exception(advert.toString());
+        }
+    }
+
+    /**
+     * 点击广告，点击量加1
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    public boolean clickAdvert(Long id)throws Exception {
+        Advert advert=new Advert();
+        advert.setAdvertId(id);
+        advert.setClickNum(1L);
+        int i=advertMapper.updateByPrimaryKeySelective(advert);
+        if(i==1){
+            return true;
+        }else{
+            throw new Exception(advert.toString());
+        }
+    }
+
+    /**
+     * 获取所有客服联系方式
+     * @return
+     * @throws Exception
+     */
+    public List<PlatformContact> getAllPlatformContact()throws Exception {
         return platformContactMapper.selectAll();
     }
+
+    /**
+     * 判断结果集是否符合逻辑，只有结果size唯一时符合
+     * @param result
+     * @param <T>
+     * @return
+     */
     public  <T> T judgeResultList(List<T> result){
         if(result.size()==1){
             return result.get(0);
@@ -67,12 +140,14 @@ public class SvcUtils {
         }
     }
 
-    public EssayParam getRecommendEssayParam(List<Integer> regionIdList, List<Integer> type){
+    public EssayParam getRecommendEssayParam(Integer cityId,Integer regionId,Integer type)throws Exception {
         EssayParam param=new EssayParam();
         param.setIsPublished(1);
-        param.setRegionIdList(regionIdList);
+        param.setRegionId(regionId);
+        param.setCityId(cityId);
+        param.setEssayType(type);
         param.setRecommendNumFrom(Constants.RECOMMEND_NUM_FROM);
-        param.setEssayTypeList(type);
+        //param.setEssayTypeList(type);
         //param.setIsHot(true);
         param.setPublishTimeFrom(DateUtil.getSpecifiedDay(-2));
         param.setPublishTimeTo(new Date());
@@ -80,12 +155,22 @@ public class SvcUtils {
         return param;
     }
 
-    public EssayParam getHotEssayParam(List<Integer> regionIdList, List<Integer> type){
+    /**
+     * 获取热门文章的查询用参数
+     * @param cityId
+     * @param regionId
+     * @param type
+     * @return
+     * @throws Exception
+     */
+    public EssayParam getHotEssayParam(Integer cityId,Integer regionId,Integer type)throws Exception {
         EssayParam param=new EssayParam();
         param.setIsPublished(1);
-        param.setRegionIdList(regionIdList);
+        param.setRegionId(regionId);
+        param.setCityId(cityId);
+        param.setEssayType(type);
         param.setCommentNumFrom(Constants.HOT_COMMENT_NUM_FROM);
-        param.setEssayTypeList(type);
+        //param.setEssayTypeList(type);
         param.setIsHot(true);
         param.setPublishTimeFrom(DateUtil.getSpecifiedDay(-2));
         param.setPublishTimeTo(new Date());
@@ -93,16 +178,17 @@ public class SvcUtils {
         return param;
     }
 
-    public  EssayParam getNormalEssayParam(List<Integer> regionIdList,List<Integer> type){
+    public  EssayParam getNormalEssayParam(Integer cityId,Integer regionId,Integer type)throws Exception {
         EssayParam param=new EssayParam();
         param.setIsPublished(1);
-        param.setRegionIdList(regionIdList);
-        param.setEssayTypeList(type);
+        param.setRegionId(regionId);
+        param.setCityId(cityId);
+        param.setEssayType(type);
         param.setOrderBy(null);
         return param;
     }
 
-    public  List<Integer> getCityRegionListByRegionId(Integer regionId){
+    public  List<Integer> getCityRegionListByRegionId(Integer regionId)throws Exception {
         if(regionId!=null){
             Region pr=new Region();
             pr.setRegionId(regionId);
@@ -122,7 +208,7 @@ public class SvcUtils {
 
     }
 
-    public  List<Integer> getRegionListByUserId(Integer id){
+    public  List<Integer> getRegionListByUserId(Integer id)throws Exception {
         User pu=new User();
         pu.setUserId(id);
         List<User> result=userMapper.getUserByAccurateCondition(pu);
@@ -134,56 +220,128 @@ public class SvcUtils {
 
     }
 
-    public Integer addRecommend(Integer userId,Integer essayId,Integer commentId){
+    public  List<Integer> getAllRegionList()throws Exception {
+        Region pr=new Region();
+        List<Region> result=regionMapper.getRegionByCondition(pr);
+        List<Integer> list=new ArrayList<>();
+        for(Region r:result){
+            list.add(r.getRegionId());
+        }
+        return  list;
+    }
+
+    public Integer addRecommend(Integer userId,Integer essayId,Integer commentId)throws Exception {
         Recommend rc=new Recommend();
         rc.setCommentId(commentId);
         rc.setEssayId(essayId);
         rc.setUserId(userId);
         rc.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        return  recommendMapper.addRecommend(rc);
+        int i=  recommendMapper.addRecommend(rc);
+        if(i!=1){
+            throw  new Exception("addRecommend"+"失败"+rc.toString());
+        }
+        return i;
     }
 
-    public Integer addAccusation(Integer userId,Integer essayId,String accusationContent){
+    /**
+     * 添加意见信息
+     * @param userId
+     * @param essayId
+     * @param accusationContent
+     * @return
+     * @throws Exception
+     */
+    public Integer addAccusation(Integer userId,Integer essayId,String accusationContent)throws Exception {
         Accusation accusation=new Accusation();
         accusation.setAccusationContent(accusationContent);
         accusation.setEssayId(essayId);
         accusation.setUserId(userId);
         accusation.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        return  accusationMapper.addAccusation(accusation);
+        int i=  accusationMapper.addAccusation(accusation);
+        if(i!=1){
+            throw  new Exception("addAccusation"+"失败"+accusation.toString());
+        }
+        return i;
     }
 
-    public Integer deleteRecommend(Integer userId,Integer essayId,Integer commentId){
+    /**
+     * 添加反馈信息
+     * @param userId
+     * @param content
+     * @return
+     * @throws Exception
+     */
+    public int addOpinion(long userId, String content)throws Exception  {
+        Opinion opinion=new Opinion();
+        opinion.setContent(content);
+        opinion.setUserId(userId);
+        opinion.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        int i=  opinionMapper.insertSelective(opinion);
+        if(i!=1){
+            throw  new Exception();
+        }
+        return i;
+    }
+    public Integer deleteRecommend(Integer userId,Integer essayId,Integer commentId)throws Exception {
         Recommend rc=new Recommend();
         rc.setCommentId(commentId);
         rc.setEssayId(essayId);
         rc.setUserId(userId);
         List<Recommend> rcs=recommendMapper.getRecommendByCondition(rc);
         if(rcs.size()!=1){
-            return  null;
+            throw  new Exception("recommendMapper.getRecommendByCondition(rc)"+"不唯一"+rc.toString());
         }
-        return  recommendMapper.deleteRecommendById(rcs.get(0).getRecommendId());
+        int i=  recommendMapper.deleteRecommendById(rcs.get(0).getRecommendId());
+        if(i!=1){
+            throw  new Exception("deleteRecommendById"+"失败"+rcs.get(0).getRecommendId());
+        }
+        return i;
     }
 
-    public Integer addConcern(Integer userFromId,Integer userToId){
+    /**
+     * 添加关注信息
+     * @param userFromId
+     * @param userToId
+     * @return
+     * @throws Exception
+     */
+    public Integer addConcern(Integer userFromId,Integer userToId)throws Exception {
         Concern c=new Concern();
         c.setUserFromId(userFromId);
         c.setUserToId(userToId);
         c.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        return  concernMapper.addConcern(c);
+        int i=  concernMapper.addConcern(c);
+        if(i!=1){
+            throw new Exception(c.toString());
+        }
+        return i;
     }
 
-    public Integer deleteConcern(Integer userFromId,Integer userToId){
+    /**
+     * 删除关注信息
+     * @param userFromId
+     * @param userToId
+     * @return
+     * @throws Exception
+     */
+    public Integer deleteConcern(Integer userFromId,Integer userToId)throws Exception {
         Concern c=new Concern();
         c.setUserFromId(userFromId);
         c.setUserToId(userToId);
         List<Concern> cs=concernMapper.getConcernByCondition(c);
         if(cs.size()!=1){
-            return  cs.size();
+
+            throw new Exception(c.toString());
+            //return  cs.size();
         }
-        return  concernMapper.deleteConcernById(cs.get(0).getConcernId());
+        int i=  concernMapper.deleteConcernById(cs.get(0).getConcernId());
+        if(i!=1){
+            throw new Exception("id="+cs.get(0).getConcernId());
+        }
+        return i;
     }
 
-    public  List<Integer> getUserIdByConcern(Integer id){
+    public  List<Integer> getUserIdByConcern(Integer id)throws Exception {
         Concern c=new Concern();
         c.setUserFromId(id);
         List<Concern> cs=concernMapper.getConcernByCondition(c);
@@ -193,7 +351,7 @@ public class SvcUtils {
         }
         return ids;
     }
-    public  Integer getIdByUserName(String s){
+    public  Integer getIdByUserName(String s)throws Exception {
         User p=new User();
         p.setUserName(s);
         List<User> result=userMapper.getUserByAccurateCondition(p);
@@ -205,14 +363,14 @@ public class SvcUtils {
         }
     }
 
-    public  List<Message> getMessageByUserId(Integer id){
+/*    public  List<Message> getMessageByUserId(Integer id)throws Exception {
         Message pm=new Message();
         pm.setMessageUserId(id);
         List<Message> res=messageMapper.getMessageByCondition(pm);
         return res;
     }
 
-    public  List<Message> getMessageByUserAndEssay(Integer userId,Integer essayId,Integer isRead){
+    public  List<Message> getMessageByUserAndEssay(Integer userId,Integer essayId,Integer isRead)throws Exception {
         Message pm=new Message();
         pm.setMessageUserId(userId);
         pm.setMessageEssayId(essayId);
@@ -221,18 +379,20 @@ public class SvcUtils {
         return res;
     }
 
-    public int makeMessageListIsRead(List<Message> list){
+    public int makeMessageListIsRead(List<Message> list)throws Exception {
         int num=0;
         for(Message m:list){
             m.setIsRead(1);
             int i=messageMapper.updateMessage(m);
-            if(i==1)
+            if(i!=1){
+                throw new Exception(m.toString());
+            }
             num+=i;
         }
         return num;
     }
 
-    public static HashMap<String,Message> getMapByMsgList(List<Message> list){
+    public static HashMap<String,Message> getMapByMsgList(List<Message> list)throws Exception {
         HashMap<String,Message> map=new HashMap<>();
         for(Message m:list){
             String k= m.getMessageUserId()+"_"+m.getMessageEssayId();
@@ -240,7 +400,7 @@ public class SvcUtils {
         }
         return  map;
     }
-    public static HashMap<String,Message> getNoticeMapByMsgList(List<Message> list){
+    public static HashMap<String,Message> getNoticeMapByMsgList(List<Message> list)throws Exception {
         HashMap<String,Message> map=new HashMap<>();
         for(Message m:list){
             String k= m.getMessageUserId()+"_"+m.getMessageEssayId();
@@ -249,7 +409,7 @@ public class SvcUtils {
         return  map;
     }
 
-    public static void cacheMsgByUserAndType(User user, List<Message> list, CacheClient cacheClient){
+    public static void cacheMsgByUserAndType(User user, List<Message> list, CacheClient cacheClient)throws Exception {
         String newsKey=Constants.MC_NEWS_MSG_KEY_PREFIX+user.getUserId();
         String essayKey=Constants.MC_ESSAY_MSG_KEY_PREFIX+user.getUserId();
         String remindKey=Constants.MC_REMIND_MSG_KEY_PREFIX+user.getUserId();
@@ -283,7 +443,7 @@ public class SvcUtils {
             cacheClient.set(remindKey,Constants.REMIND_MSG_EXPIRE_SECOND,remindMap);
         }
     }
-    public static void updateMsgInCache(User user, Integer type,List<Message> messageList, CacheClient cacheClient) {
+    public static void updateMsgInCache(User user, Integer type,List<Message> messageList, CacheClient cacheClient)throws Exception  {
 
         Integer i = type;
         String remindKey = Constants.MC_MSG_KEY_PREFIX_MAP.get(i) + user.getUserId();
@@ -308,7 +468,7 @@ public class SvcUtils {
     }
 
 
-    public static HashMap<String, Message> getMsgByTypeFromCache (Integer userId,Integer type,CacheClient cacheClient){
+    public static HashMap<String, Message> getMsgByTypeFromCache (Integer userId,Integer type,CacheClient cacheClient)throws Exception {
         HashMap<String, Message> res=null;
         Integer i = type;
         String remindKey = Constants.MC_MSG_KEY_PREFIX_MAP.get(i) + userId;
@@ -320,9 +480,9 @@ public class SvcUtils {
             }
         }
         return null;
-    }
+    }*/
 
-    public Boolean judgeCollected(Integer userId,Integer essayId){
+    public Boolean judgeCollected(Integer userId,Integer essayId)throws Exception {
         if(userId==null)
             return null;
         Collection pc=new Collection();
@@ -336,7 +496,7 @@ public class SvcUtils {
         }
     }
 
-    public Boolean judgeConcerned(Integer userFromId,Integer userToId){
+    public Boolean judgeConcerned(Integer userFromId,Integer userToId)throws Exception {
         if(userFromId==null)
             return null;
         Concern pc=new Concern();
@@ -350,7 +510,7 @@ public class SvcUtils {
         }
     }
 
-    public Boolean judgeEssayRecommended(Integer userId, Integer essayId){
+    public Boolean judgeEssayRecommended(Integer userId, Integer essayId)throws Exception {
         if(userId==null)
             return null;
         Recommend pc=new Recommend();
@@ -364,28 +524,47 @@ public class SvcUtils {
         }
     }
 
-    public void judgeEssayListConcerned(Integer userFromId,List<Essay> essayList){
+    public String getAuthByUserId(Integer userId) throws Exception {
+        User pe=new User();
+        pe.setUserId(userId);
+        User user=userMapper.getUserByAccurateCondition(pe).get(0);
+        return user.getAuthId();
+    }
+    public void judgeEssayListConcerned(Integer userFromId,List<Essay> essayList)throws Exception {
         for(Essay e:essayList){
             e.setConcerned(judgeConcerned(userFromId,e.getUserId()));
         }
     }
 
+    public void judgeEssayListRecommended(Integer userId, List<Essay> essayList)throws Exception {
+        for(Essay e:essayList){
+            e.setRecommended(judgeEssayRecommended(userId,e.getEssayId()));
+        }
+    }
 
-    public void judgeEssayListRecommendedAndConcerned(Integer userId, List<Essay> essayList){
+
+    public void setEssayAuthId(List<Essay> essayList)throws Exception {
+        for(Essay e:essayList){
+            e.setAuthId(getAuthByUserId(e.getUserId()));
+        }
+    }
+
+    /**
+     * 设置是否推荐、关注、权限ID
+     * @param userId
+     * @param essayList
+     * @throws Exception
+     */
+    public void judgeEssayListRecommendedAndConcernedAndAuthId(Integer userId, List<Essay> essayList)throws Exception {
         for(Essay e:essayList){
             e.setConcerned(judgeConcerned(userId,e.getUserId()));
-
             e.setRecommended(judgeEssayRecommended(userId,e.getEssayId()));
+            e.setAuthId(getAuthByUserId(e.getUserId()));
         }
     }
 
-    public void judgeEssayListRecommended(Integer userId, List<Essay> essayList){
-        for(Essay e:essayList){
-            e.setRecommended(judgeEssayRecommended(userId,e.getEssayId()));
-        }
-    }
 
-    public Boolean judgeCommentRecommended(Integer userId,Integer commentId){
+    public Boolean judgeCommentRecommended(Integer userId,Integer commentId)throws Exception {
         if(userId==null)
             return null;
         Recommend pc=new Recommend();
@@ -399,7 +578,27 @@ public class SvcUtils {
         }
     }
 
-    public Identification getIdentificationByUser(User user){
+    /**
+     * 设置是否点赞、权限ID
+     * @param userId
+     * @param essayList
+     * @throws Exception
+     */
+    public void setCommentListRecommendedAndAuthId(Integer userId, List<Comment> essayList)throws Exception {
+        for(Comment c:essayList){
+            c.setRecommended(judgeCommentRecommended(userId,c.getCommentId()));
+            c.setAuthId(getAuthByUserId(c.getUserId()));
+        }
+    }
+
+
+    /**
+     * 获取用户的认证信息
+     * @param user
+     * @return
+     * @throws Exception
+     */
+    public Identification getIdentificationByUser(User user)throws Exception {
         int fans=0;
         int pic=0;
         int nickname=0;
@@ -410,7 +609,7 @@ public class SvcUtils {
 
         Integer fansNum=user.getFans();
         String picStr=user.getUserPic();
-        String nickNameStr=user.getNickname();
+        Integer nicknameChanged=user.getNicknameChanged();
         String signatureStr =user.getSignature();
         Integer essaysNum;
         String authStr =user.getAuthId();
@@ -419,7 +618,7 @@ public class SvcUtils {
 
         EssayParam pe=new EssayParam();
         pe.setUserIdList(Arrays.asList(user.getUserId()));
-        pe.setRecommendNumFrom(Constants.INDENTIFICATION_RECOMMEND_NUM);
+        pe.setRecommendNumFrom(Constants.RECOMMEND_NUM_FROM);
         List list=essayMapper.getEssayByCondition(pe);
         essaysNum=list.size();
 
@@ -429,7 +628,7 @@ public class SvcUtils {
         if(!StringUtil.isEmpty(picStr)){
             pic=1;
         }
-        if(!StringUtil.isEmpty(nickNameStr)&&!nickNameStr.equals(str)){
+        if(nicknameChanged==1){
             nickname=1;
         }
         if(!StringUtil.isEmpty(signatureStr)){
@@ -441,15 +640,29 @@ public class SvcUtils {
         int needIdentify=fans*pic*nickname*signature*essays;
         if(authStr!=null&&authStr.equals("ROLE_IDENTIFICATION")){
             isIdentified=1;
-        }else if(authStr!=null&&authStr.equals("ROLE_USER")&&needIdentify==1){
-            User newUser=new User();
-            newUser.setUserId(user.getUserId());
-            newUser.setAuthId("ROLE_IDENTIFICATION");
-            int updateUser=userMapper.updateUser(newUser);
-            logger.info("updateUser   result:  "+updateUser);
+        }
+        else if(authStr!=null&&authStr.equals("ROLE_USER")&&needIdentify==1){
+//            User newUser=new User();
+//            newUser.setUserId(user.getUserId());
+//            newUser.setAuthId("ROLE_IDENTIFICATION");
+//            newUser.setAuthenticationTime(DateUtil.getDateTime("dateFormat1",new Date()));
+//            int updateUser=userMapper.updateUser(newUser);
+//            logger.info("updateUser   result:  "+updateUser);
+//            if(updateUser!=1){
+//                throw new Exception("updateUser更新错误:"+newUser);
+//            }
+        	AuthAudit authAudit = new AuthAudit();
+        	authAudit.setState((byte) 1);
+        	authAudit.setUserId(user.getUserId().longValue());
+        	List<AuthAudit> authAudits = authAuditMapper.getAuthAudit(authAudit);
+        	if(!authAudits.isEmpty() || authAudits.size() > 0){
+        		isIdentified = 2;
+        	}
         }
 
         return new Identification(pic,nickname,essays,signature,fans,isIdentified);
 
     }
+
+
 }

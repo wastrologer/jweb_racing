@@ -681,6 +681,13 @@
             </SvnBranchConfiguration>
           </value>
         </entry>
+        <entry key="D:/code/ideCode/jweb_racing_item">
+          <value>
+            <SvnBranchConfiguration>
+              <option name="trunkUrl" value="svn://123.207.23.58/meme/new_java/jweb_racing_item/jweb_racing_item" />
+            </SvnBranchConfiguration>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$">
           <value>
             <SvnBranchConfiguration>
@@ -701,11 +708,14 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="svn" />
+    <mapping directory="" vcs="Git" />
     <mapping directory="D:/code/ideCode/jweb_forum_operation" vcs="svn" />
+    <mapping directory="D:/code/ideCode/jweb_forum_operation" vcs="Git" />
     <mapping directory="D:/code/ideCode/jweb_image_item" vcs="svn" />
+    <mapping directory="D:/code/ideCode/jweb_image_item" vcs="Git" />
     <mapping directory="D:/code/ideCode/jweb_racing_item" vcs="svn" />
+    <mapping directory="D:/code/ideCode/jweb_racing_item" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../jweb_forum_opration/ModelGen" vcs="Git" />
   </component>
   <component name="libraryTable">
     <library name="Maven: alipay.sdk:alipay-sdk-java20161031120103:1.0">

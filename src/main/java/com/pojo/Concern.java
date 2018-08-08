@@ -9,6 +9,17 @@ public class Concern {
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Concern{" +
+                "concernId=" + concernId +
+                ", userFromId=" + userFromId +
+                ", userToId=" + userToId +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Timestamp getCreateTime() {
         return createTime;
     }

@@ -1,25 +1,28 @@
 package com.controller;
 
-import com.common.utils.SvcUtils;
 import com.common.cache.CacheClient;
+import com.common.utils.SvcUtils;
 import com.pojo.Collection;
 import com.pojo.User;
 import com.pojo.UserToken;
 import com.service.ICollectionSvc;
 import com.service.IEssaySvc;
 import com.service.IUserSvc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
-import java.security.Principal;
 import java.util.Map;
 
 @Controller
 @RequestMapping("/collection")
 public class CollectionController extends BaseController {
+    protected static final Logger logger = LoggerFactory.getLogger(CollectionController.class);
+
     @Resource
     private IUserSvc userSvcImpl;
 
@@ -57,6 +60,7 @@ public class CollectionController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -86,6 +90,7 @@ public class CollectionController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }

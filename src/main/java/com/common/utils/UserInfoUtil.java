@@ -22,7 +22,7 @@ public class UserInfoUtil {
 
 	public UserToken getUserToken(Integer i,HttpServletRequest request) {
 		UserToken uk=new UserToken();
-		uk.setUserId(140);
+		uk.setUserId(237);
 		return uk;
 	}
 

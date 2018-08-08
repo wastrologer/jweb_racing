@@ -23,6 +23,9 @@ public class MaterialSvcImpl implements IMaterialSvc {
 
 	public void insertMaterial(Material m) throws Exception {
 		m.setCreateTime(new Timestamp(System.currentTimeMillis()));
-		materialDao.addMaterial(m);
+		int i=materialDao.addMaterial(m);
+		if(i!=1){
+			throw new Exception(m.toString());
+		}
 	}
 }

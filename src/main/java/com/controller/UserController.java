@@ -1,11 +1,14 @@
 package com.controller;
 
 import com.common.cache.CacheClient;
+import com.common.entity.CommonEnum;
+import com.common.utils.MD5Util;
 import com.common.utils.StringUtil;
 import com.common.utils.SvcUtils;
 import com.constant.ErrorCode;
 import com.github.pagehelper.PageInfo;
 import com.pojo.*;
+import com.service.IAuthAuditSvc;
 import com.service.IEssaySvc;
 import com.service.IMessageSvc;
 import com.service.IUserSvc;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,22 +43,31 @@ public class UserController extends BaseController {
     private IEssaySvc essaySvcImpl;
     @Resource
     private IMessageSvc messageSvcImpl;
+    
+    @Resource
+    private IAuthAuditSvc authAuditSvcImpl;
 
     @RequestMapping("/test")
     @ResponseBody
     public Map<String, Object> userInfo(@RequestParam(value="num", required=false)Integer num,
                                         @RequestParam(value="size", required=false)Integer size){
-        System.out.println(userSvcImpl.getUserByAuthNameAndPage("用户",num,size).getList()+"======"+userSvcImpl.selectUser(1).getUserName());
-        Essay e=new Essay();
-        e.setRecommendNum(1846);
-        e.setEssayContent("Maven构建一个最简单的Spring Boot + Spring MVC项目\n" +
-                "阅读量：8121");
-        e.setEssayTitle("新闻");
-        e.setEssayType(0);
-        e.setRegionId(1);
-        e.setPublishTime(new Timestamp(System.currentTimeMillis()));
-        e.setUserId(1);
-        return null;
+        try {
+            System.out.println(userSvcImpl.getUserByAuthNameAndPage("用户",num,size).getList()+"======"+userSvcImpl.selectUser(1).getUserName());
+            Essay e=new Essay();
+            e.setRecommendNum(1846);
+            e.setEssayContent("Maven构建一个最简单的Spring Boot + Spring MVC项目\n" +
+                    "阅读量：8121");
+            e.setEssayTitle("新闻");
+            e.setEssayType(0);
+            e.setRegionId(1);
+            e.setPublishTime(new Timestamp(System.currentTimeMillis()));
+            e.setUserId(1);
+            return null;
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            Map<String, Object> map = getErrorMap(e1.getClass().getName());
+            return map;
+        }
     }
     /*管理员查看user信息*/
     @RequestMapping("/manager/userInfo")
@@ -62,28 +75,34 @@ public class UserController extends BaseController {
     public Map<String, Object> getUser(@RequestParam(value="userName", required=false)String userName,
                                        @RequestParam(value="phoneNumber", required=false)String phoneNumber,
                                        @RequestParam(value="inviteCode", required=false)String inviteCode){
-        UserToken uk=getUserToken();
-        if(uk!=null){
-            User user= userSvcImpl.getUserById((int)uk.getUserId());
-            if(user!=null){
-                Map<String, Object> map = getStrMap("user",user);
-                return map;
+        try {
+            UserToken uk=getUserToken();
+            if(uk!=null){
+                User user= userSvcImpl.getUserById((int)uk.getUserId());
+                if(user!=null){
+                    Map<String, Object> map = getStrMap("user",user);
+                    return map;
+                }
+            }else if(phoneNumber!=null&&!phoneNumber.equals("")){
+                User user=userSvcImpl.getUserByPhoneNumber(phoneNumber);
+                if(user!=null){
+                    Map<String, Object> map = getStrMap("user",user);
+                    return map;
+                }
+            }else if(inviteCode!=null&&!inviteCode.equals("")){
+                User user=userSvcImpl.getUserByInviteCode(inviteCode);
+                if(user!=null){
+                    Map<String, Object> map = getStrMap("user",user);
+                    return map;
+                }
             }
-        }else if(phoneNumber!=null&&!phoneNumber.equals("")){
-            User user=userSvcImpl.getUserByPhoneNumber(phoneNumber);
-            if(user!=null){
-                Map<String, Object> map = getStrMap("user",user);
-                return map;
-            }
-        }else if(inviteCode!=null&&!inviteCode.equals("")){
-            User user=userSvcImpl.getUserByInviteCode(inviteCode);
-            if(user!=null){
-                Map<String, Object> map = getStrMap("user",user);
-                return map;
-            }
-        }
-        Map<String, Object> map = getErrorMap();
-        return map;
+            Map<String, Object> map = getErrorMap();
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error(e.getMessage(), e);
+            Map<String, Object> map = getErrorMap(e.getClass().getName());
+            return map;        }
     }
 
     /*
@@ -96,6 +115,7 @@ public class UserController extends BaseController {
             List<PlatformContact> ps=svcUtils.getAllPlatformContact();
             return getStrMap(ps,ps.size());
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
@@ -113,7 +133,7 @@ public class UserController extends BaseController {
         try {
             UserToken uk=getUserToken();
             if(type!=null&&type==1){
-                EssayParam param=svcUtils.getHotEssayParam(null,null);
+                EssayParam param=svcUtils.getHotEssayParam(null,null,null);
                 PageInfo<Essay> hotEssayPageInfo=essaySvcImpl.getEssayByConditionAndPage(param,1,999);
                List<Essay> hotEssays=hotEssayPageInfo.getList();
                 Set<Integer> allUserIds=new HashSet<>();
@@ -121,8 +141,8 @@ public class UserController extends BaseController {
                     allUserIds.add(e.getUserId());
                 }
                 //List<User> hotUsers=userSvcImpl.getUserByIds(allUserIds);
-                param.setRecommendNumFrom(0);
-                param.setRecommendNumTo(50);
+                param.setCommentNumFrom(0);
+                param.setCommentNumTo(50);
                 PageInfo<Essay> normalEssayPageInfo=essaySvcImpl.getEssayByConditionAndPage(param,1,999);
                 List<Essay> normalEssays=normalEssayPageInfo.getList();
                 //Set<Integer> normalUserIds=new HashSet<>();
@@ -156,6 +176,7 @@ public class UserController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error(e.getMessage(), e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -181,7 +202,9 @@ public class UserController extends BaseController {
                         return getErrorMap(ErrorCode.USER_NICKNAME_EXIST_ERROR,"昵称重复");
                     }
                     user.setNickname(u.getNickname());
-
+                    if(myself.getNicknameChanged()==2){
+                        user.setNicknameChanged(1);
+                    }
                 }
                 if(u.getBackdrop()!=null){
                     user.setBackdrop(u.getBackdrop());
@@ -196,6 +219,7 @@ public class UserController extends BaseController {
                 if(i==1)
                     return getSuccessMap();
             } catch (Exception e) {
+                logger.error(e.getMessage(), e);
                 e.printStackTrace();
                 Map<String, Object> map = getErrorMap(e.getClass().getName());
                 return map;
@@ -229,6 +253,7 @@ public class UserController extends BaseController {
                     return getErrorMap(ErrorCode.USER_NOT_EXIST,"找不到用户");
                 }
             } catch (Exception e) {
+                logger.error(e.getMessage(), e);
                 e.printStackTrace();
                 Map<String, Object> map = getErrorMap(e.getClass().getName());
                 return map;
@@ -239,7 +264,7 @@ public class UserController extends BaseController {
     }
 
     /*登陆之后cacheMsg*/
-    @RequestMapping("/customer/cacheMsg")
+/*    @RequestMapping("/customer/cacheMsg")
     @ResponseBody
     public Map<String, Object> cacheMsg(){
         try {
@@ -254,13 +279,14 @@ public class UserController extends BaseController {
                 }
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
         Map<String, Object> map = getUnlogedErrorMap();
         return map;
-    }
+    }*/
 /*
     查看我的关注/粉丝
 */
@@ -293,6 +319,7 @@ public class UserController extends BaseController {
                 }
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
@@ -352,6 +379,7 @@ public class UserController extends BaseController {
                 }
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
@@ -374,6 +402,7 @@ public class UserController extends BaseController {
                 }
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
@@ -381,7 +410,41 @@ public class UserController extends BaseController {
         Map<String, Object> map = getUnlogedErrorMap();
         return map;
     }
-
+    
+    /*申请认证*/
+    @RequestMapping("/customer/auditAuth")
+    @ResponseBody
+    public Map<String, Object> auditAuth(){
+        try {
+            UserToken uk=getUserToken();
+            if(uk!=null){
+                User user= userSvcImpl.getUserById(1,(int)uk.getUserId());
+                if(user!=null){
+                    AuthAudit authAudit = new AuthAudit();
+                    authAudit.setUserId(user.getUserId().longValue());
+                    authAudit.setApplicationTime(new Date());
+                    authAudit.setCreateTime(new Date());
+                    authAudit.setState(CommonEnum.AuthAuditState.AUDITING.value);
+                    int result = authAuditSvcImpl.insertSelective(authAudit);
+                    if (result <= 0 ) {
+                    	 Map<String, Object> map = getErrorMap();
+        				map.put("errorCode", ErrorCode.UPDATE_USER_DETAIL_ERROR);
+        				map.put("msg", "申请认证失败");
+        				return map;
+        			}
+                    return getSuccessMap();
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            e.printStackTrace();
+            Map<String, Object> map = getErrorMap(e.getClass().getName());
+            return map;
+        }
+        Map<String, Object> map = getUnlogedErrorMap();
+        return map;
+    }
+    
     /*changePassword    */
     @RequestMapping("/customer/changePassword")
     @ResponseBody
@@ -389,9 +452,10 @@ public class UserController extends BaseController {
         try {
             UserToken uk=getUserToken();
             if(uk!=null){
+                User user=userSvcImpl.getUserById(1,(int)uk.getUserId());
                 User pu=new User();
                 pu.setUserId((int)uk.getUserId());
-                pu.setPassword(password);
+                pu.setPassword(MD5Util.md5(user.getPhoneNumber() + ":" + password));
                 Integer i= userSvcImpl.updateUserOnly(pu);
                 if(i!=null&&i==1){
                     return getSuccessMap();
@@ -400,6 +464,7 @@ public class UserController extends BaseController {
                 }
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
@@ -423,6 +488,7 @@ public class UserController extends BaseController {
                 return getStrMap(pageInfo);
             }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             e.printStackTrace();
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;

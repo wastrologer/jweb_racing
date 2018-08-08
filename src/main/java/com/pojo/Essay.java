@@ -31,10 +31,60 @@ public class Essay {
     private Integer isAward;//不填,是否奖励
     private Integer isHiden=1;//不填，自动生成，1不隐藏，2隐藏
     private Integer collectNum;//返回值，是否收藏了文章
+    private Integer cityId;//1深圳，2广州
 
-
+    private String authId;//作者auth
     private String userPic;//
     private Timestamp lastUpdateTime;
+
+    @Override
+    public String toString() {
+        return "Essay{" +
+                "isHot=" + isHot +
+                ", timeBefore='" + timeBefore + '\'' +
+                ", isPublished=" + isPublished +
+                ", essayId=" + essayId +
+                ", userId=" + userId +
+                ", userNickname='" + userNickname + '\'' +
+                ", essayTitle='" + essayTitle + '\'' +
+                ", essayContent='" + essayContent + '\'' +
+                ", essayPic='" + essayPic + '\'' +
+                ", essayType=" + essayType +
+                ", recommendNum=" + recommendNum +
+                ", commentNum=" + commentNum +
+                ", clickNum=" + clickNum +
+                ", regionId=" + regionId +
+                ", publishTime=" + publishTime +
+                ", createTime=" + createTime +
+                ", topicId=" + topicId +
+                ", collected=" + collected +
+                ", recommended=" + recommended +
+                ", concerned=" + concerned +
+                ", goldNum=" + goldNum +
+                ", isAward=" + isAward +
+                ", isHiden=" + isHiden +
+                ", collectNum=" + collectNum +
+                ", userPic='" + userPic + '\'' +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", comments=" + comments +
+                '}';
+    }
+
+    public String getAuthId() {
+        return authId;
+    }
+
+    public void setAuthId(String authId) {
+        this.authId = authId;
+    }
+
+    public Integer getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(Integer cityId) {
+        this.cityId = cityId;
+    }
 
     public Integer getCollectNum() {
         return collectNum;

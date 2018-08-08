@@ -13,9 +13,18 @@ public class Application {
     private Integer goldNum;
     private Integer applyState;
     private String refuseReason;
+    private String phoneNumber;
 
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
     public Timestamp getCreateTime() {
         return createTime;
@@ -111,5 +120,23 @@ public class Application {
 
     public void setApplyState(Integer applyState) {
         this.applyState = applyState;
+    }
+
+    @Override
+    public String toString() {
+        return "Application{" +
+                "applicationId=" + applicationId +
+                ", applicationTime=" + applicationTime +
+                ", userId=" + userId +
+                ", auditorId=" + auditorId +
+                ", auditTime=" + auditTime +
+                ", alipayAccount='" + alipayAccount + '\'' +
+                ", alipayName='" + alipayName + '\'' +
+                ", goldNum=" + goldNum +
+                ", applyState=" + applyState +
+                ", refuseReason='" + refuseReason + '\'' +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
     }
 }

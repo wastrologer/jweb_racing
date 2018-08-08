@@ -5,7 +5,6 @@
   <context-param>
     <param-name>contextConfigLocation</param-name>
     <param-value>
-      classpath:config-spring/spring-activemq.xml;
       classpath:config-spring/spring-mybatis.xml;
         classpath:config-spring/spring-mvc.xml;
         classpath:config-spring/spring-service.xml;

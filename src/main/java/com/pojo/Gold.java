@@ -14,6 +14,21 @@ public class Gold {
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Gold{" +
+                "goldRecordId=" + goldRecordId +
+                ", goldRecordTime=" + goldRecordTime +
+                ", goldNum=" + goldNum +
+                ", goldUserId=" + goldUserId +
+                ", goldReason='" + goldReason + '\'' +
+                ", waterType=" + waterType +
+                ", retId=" + retId +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Integer getWaterType() {
         return waterType;
     }

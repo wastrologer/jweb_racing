@@ -3,12 +3,12 @@ package com.controller;
 import com.common.cache.CacheClient;
 import com.common.utils.SvcUtils;
 import com.github.pagehelper.PageInfo;
-import com.pojo.Coin;
-import com.pojo.Gold;
-import com.pojo.User;
-import com.pojo.UserToken;
+import com.pojo.*;
+import com.service.IApplicationSvc;
 import com.service.IGoldAndCoinSvc;
 import com.service.IUserSvc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +20,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/goldAndCoin")
 public class GoldAndCoinController extends BaseController {
+    protected static final Logger logger = LoggerFactory.getLogger(GoldAndCoinController.class);
+
     @Resource
     private IUserSvc userSvcImpl;
     @Resource
@@ -28,6 +30,9 @@ public class GoldAndCoinController extends BaseController {
     private CacheClient cacheClient;
     @Resource
     private IGoldAndCoinSvc goldAndCoinSvcImpl;
+    @Resource
+    private IApplicationSvc applicationSvcImpl;
+
 
     /*getGoldRecord*/
     @RequestMapping("/customer/getGoldRecord")
@@ -39,14 +44,17 @@ public class GoldAndCoinController extends BaseController {
             if(uk!=null){
                 User user= userSvcImpl.getUserById((int)uk.getUserId());
                 if(user!=null){
+                    Account account=userSvcImpl.getAccountByUserId((int)uk.getUserId());
+                    Integer totalWithdraw=applicationSvcImpl.getTotalWithdrawByUserId((int)uk.getUserId());
                     Gold pg=new Gold();
                     pg.setGoldUserId(user.getUserId());
                     PageInfo pageInfo=goldAndCoinSvcImpl.getGoldByConditionAndPage(pg,num,size);
-                    return getStrMap(pageInfo.getList(), (int) pageInfo.getTotal(),"totalGold",user.getUserGold());
+                    return getStrMap(pageInfo.getList(), (int) pageInfo.getTotal(),"totalGold",user.getUserGold(),"freezeGold",account.getWithdrawalFreeze(),"totalWithdraw",totalWithdraw);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -73,6 +81,7 @@ public class GoldAndCoinController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -95,6 +104,7 @@ public class GoldAndCoinController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }

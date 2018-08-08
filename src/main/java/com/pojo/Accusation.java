@@ -11,6 +11,19 @@ public class Accusation {
     private Timestamp lastUpdateTime;
     private Integer auditState;
 
+    @Override
+    public String toString() {
+        return "Accusation{" +
+                "accusationId=" + accusationId +
+                ", accusationContent='" + accusationContent + '\'' +
+                ", essayId=" + essayId +
+                ", userId=" + userId +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", auditState=" + auditState +
+                '}';
+    }
+
     public Integer getAuditState() {
         return auditState;
     }

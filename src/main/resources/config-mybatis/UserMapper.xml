@@ -55,7 +55,8 @@
         *
         from user
         INNER JOIN concern ON user.user_id=concern.user_to_id
-        AND concern.user_from_id=#{id }
+        AND concern.user_from_id=#{id } 
+        where user.is_disable = 2
     </select>
     <select id="getUserByConcernTo" resultType="com.pojo.User" parameterType="java.lang.Integer" >
         select
@@ -63,11 +64,13 @@
         from user
         INNER JOIN concern ON user.user_id=concern.user_from_id
         AND concern.user_to_id=#{id }
+        where user.is_disable = 2
    </select>
     <select id="getUserOrderByFans" resultType="com.pojo.User" >
         select
         *
         from user
+        WHERE user.is_disable = 2
         ORDER BY fans DESC
     </select>
     <select id="getUserByIds" resultType="com.pojo.User" parameterType="java.util.Set">
@@ -78,6 +81,7 @@
         <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
             #{userId}
         </foreach>
+        and user.is_disable = 2
     </select>
     <select id="getUserByFuzzyCondition" resultType="com.pojo.User" parameterType="com.pojo.User" >
         select
@@ -272,12 +276,12 @@
             <if test="backdrop != null ">
                 user.backdrop = #{backdrop},
             </if>
-            <if test="userGold != null ">
-                user.user_gold =user.user_gold+#{userGold},
+<!--            <if test="userGold != null ">
+                user.user_gold =user.user_gold +#{userGold},
             </if>
             <if test="userCoin != null ">
                 user.user_coin =user.user_coin+#{userCoin},
-            </if>
+            </if>-->
             <if test="inviteNum != null ">
                 user.invite_num =user.invite_num+#{inviteNum},
             </if>
@@ -294,10 +298,16 @@
                 user.concern =user.concern+#{concern},
             </if>
             <if test="fans != null ">
-                user.fans =user.fans +#{fans}
+                user.fans =user.fans +#{fans},
             </if>
             <if test="loginTime != null ">
-                user.login_time =#{loginTime}
+                user.login_time =#{loginTime},
+            </if>
+            <if test="authenticationTime != null ">
+                user.authentication_time =#{authenticationTime},
+            </if>
+            <if test="nicknameChanged != null ">
+                user.nickname_changed =#{nicknameChanged},
             </if>
         </set>
         where user.user_id =#{userId}

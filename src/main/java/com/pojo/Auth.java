@@ -9,6 +9,17 @@ public class Auth {
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Auth{" +
+                "authId='" + authId + '\'' +
+                ", authName='" + authName + '\'' +
+                ", authType='" + authType + '\'' +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Timestamp getCreateTime() {
         return createTime;
     }

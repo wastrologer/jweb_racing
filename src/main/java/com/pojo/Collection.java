@@ -1,7 +1,6 @@
 package com.pojo;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 public class Collection {
     private Integer collectionId;
@@ -14,6 +13,21 @@ public class Collection {
 
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
+
+    @Override
+    public String toString() {
+        return "Collection{" +
+                "collectionId=" + collectionId +
+                ", collectionTime=" + collectionTime +
+                ", essayId=" + essayId +
+                ", userId=" + userId +
+                ", orderBy='" + orderBy + '\'' +
+                ", isPublished=" + isPublished +
+                ", isHiden=" + isHiden +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
 
     public Integer getIsHiden() {
         return isHiden;

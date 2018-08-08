@@ -95,10 +95,6 @@ public class LoginController extends BaseController {
                 return dataMap;
             }
 
-            User user = userSvcImpl.getUserByPhoneNumber(telephone);
-            if(user.getIsDisable()!=2){
-                return getErrorMap(ErrorCode.IS_BLACK_USER,"黑名单用户");
-            }
             String smsKey = Constants.SMS_LOGIN_PASSWD_KEY_STR + telephone;
             SMSVo smsVo = (SMSVo) cacheClient.get(smsKey);
             if (isNeedAuthCode.equals("1") || smsCode.equals("0000")) {
@@ -114,11 +110,12 @@ public class LoginController extends BaseController {
                 return dataMap;
             }
             u_token = userSvcImpl.generalToken(telephone, "kinder",signType);
-            dataMap.put("errorCode", 0);
+            dataMap.put("errorCode", 1);
             dataMap.put("userName", telephone);
             dataMap.put("utoken", u_token);
 
         } catch (Exception e) {
+            e.printStackTrace();
             dataMap.put("errorCode", -1);
             dataMap.put("msg", "短信异常:" + e.getMessage());
             logger.error(e.getMessage(), e);
@@ -131,67 +128,71 @@ public class LoginController extends BaseController {
     @ResponseBody
     public Map<String, Object> auth(@RequestParam("userName") String userName, @RequestParam("isLogin") int isLogin,
                                     @RequestParam(value = "platform", required = false) String platform,
-                                    @RequestParam(value = "signType", required = false) String signType, HttpServletRequest request)
-            throws Exception {
+                                    @RequestParam(value = "signType", required = false) String signType, HttpServletRequest request) {
         Map<String, Object> map = getSuccessMap();
-        HttpClient client = new HttpClient();
-        if (platform == null || platform.equals("")) {
-            platform = "kinder";
-        }
-        if (signType == null || signType.equals("")) {
-            signType = "WEB";
-        }
-        String url = baseLoginUrl + "/login/getToken?userName=" + userName + "&platform=" + platform + "&signType=" + signType;
-        HttpMethodBase method = null;
-        if (request.getMethod().equals("GET")) {
-            method = new GetMethod(url);
-        } else {
-            method = new PostMethod(url);
-        }
+        try {
+            HttpClient client = new HttpClient();
+            if (platform == null || platform.equals("")) {
+                platform = "kinder";
+            }
+            if (signType == null || signType.equals("")) {
+                signType = "WEB";
+            }
+            String url = baseLoginUrl + "/login/getToken?userName=" + userName + "&platform=" + platform + "&signType=" + signType;
+            HttpMethodBase method = null;
+            if (request.getMethod().equals("GET")) {
+                method = new GetMethod(url);
+            } else {
+                method = new PostMethod(url);
+            }
 
-        Map<String, Object> detail = new HashMap<>();
-        User user = userSvcImpl.getUserByPhoneNumber(userName);
-        if (user == null) {
-            map.put("errorCode", ErrorCode.USER_NOT_EXIST);
-            map.put("msg", "用户不存在！");
-            return map;
-        }
-        //User u=userSvcImpl.getUserByUserName(data.getString("userName"));
-        if(user.getIsDisable()!=2){
-            return getErrorMap(ErrorCode.IS_BLACK_USER,"黑名单用户");
-        }
-        if (isLogin == 1) {
-            method.addRequestHeader("Authorization", request.getHeader("Authorization"));
-        }
-        int statusCode = client.executeMethod(method);
-        if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+            Map<String, Object> detail = new HashMap<>();
+            User user = userSvcImpl.getUserByPhoneNumber(userName);
+            if (user == null) {
+                map.put("errorCode", ErrorCode.USER_NOT_EXIST);
+                map.put("msg", "用户不存在！");
+                return map;
+            }
+            //User u=userSvcImpl.getUserByUserName(data.getString("userName"));
+            if(user.getIsDisable()!=2){
+                return getErrorMap(ErrorCode.IS_BLACK_USER,"黑名单用户");
+            }
             if (isLogin == 1) {
-                System.out.println("认证失败");
-                logger.error("认证失败");
-                //认证失败，记录于用户登陆失败信息
-                if (user != null) {
-                    map.put("errorCode", ErrorCode.USER_AND_PASSWORD_ERROR);
-                    map.put("msg", "账号密码不正确！" );
-                    return map;
+                method.addRequestHeader("Authorization", request.getHeader("Authorization"));
+            }
+            int statusCode = client.executeMethod(method);
+            if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
+                if (isLogin == 1) {
+                    System.out.println("认证失败");
+                    logger.error("认证失败");
+                    //认证失败，记录于用户登陆失败信息
+                    if (user != null) {
+                        map.put("errorCode", ErrorCode.USER_AND_PASSWORD_ERROR);
+                        map.put("msg", "账号密码不正确！" );
+                        return map;
+                    }
                 }
+                Header header = method.getResponseHeader("WWW-Authenticate");
+                HeaderElement[] elements = header.getElements();
+                for (HeaderElement element : elements) {
+                    detail.put(element.getName(), element.getValue());
+                }
+                detail.put("realm", detail.get("Digest realm"));
+                map.put("data", detail);
+            } else if (statusCode == HttpStatus.SC_OK) {
+                JSONObject data = JSONObject.parseObject(method.getResponseBodyAsString());
+                map.put("errorCode", Integer.valueOf(data.getString("errorCode")));
+                detail.put("userName", data.getString("userName"));
+                detail.put("utoken", data.getString("token"));
+                map.put("data", detail);
+                //认证成功，清楚用户登录失败信息
+            } else {
+                logger.error("认证失败");
+                // throw new BusinessException(ErrorEnum.AUTH_FAILURE);
             }
-            Header header = method.getResponseHeader("WWW-Authenticate");
-            HeaderElement[] elements = header.getElements();
-            for (HeaderElement element : elements) {
-                detail.put(element.getName(), element.getValue());
-            }
-            detail.put("realm", detail.get("Digest realm"));
-            map.put("data", detail);
-        } else if (statusCode == HttpStatus.SC_OK) {
-            JSONObject data = JSONObject.parseObject(method.getResponseBodyAsString());
-            map.put("errorCode", Integer.valueOf(data.getString("errorCode")));
-            detail.put("userName", data.getString("userName"));
-            detail.put("utoken", data.getString("token"));
-            map.put("data", detail);
-            //认证成功，清楚用户登录失败信息
-        } else {
-            logger.error("认证失败");
-            // throw new BusinessException(ErrorEnum.AUTH_FAILURE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return map;
     }

@@ -34,6 +34,9 @@
             <if test="createTime != null ">
                 AND application.create_time =#{createTime}
             </if>
+            <if test="phoneNumber != null ">
+                AND application.phone_number =#{phoneNumber}
+            </if>
         </where>
     </sql>
 
@@ -50,8 +53,14 @@
         from application
         <include refid="whereSql"/>
     </select>
-
-    <insert id="addApplication"  parameterType="com.pojo.Application"  >
+    <select id="getTotalWithdrawByUserId" resultType="java.lang.Integer" parameterType="java.lang.Integer" >
+        SELECT
+        SUM(gold_num)
+        from application
+        WHERE user_id=#{userId}
+        AND apply_state=1
+    </select>
+    <insert id="addApplication"  parameterType="com.pojo.Application"  useGeneratedKeys="true" keyProperty="applicationId" >
         insert into application
         <trim prefix="(" suffix=")" suffixOverrides="," >
             <if test="applicationId != null" >
@@ -86,6 +95,9 @@
             </if>
             <if test="createTime != null" >
                 create_time,
+            </if>
+            <if test="phoneNumber != null ">
+                phone_number,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -122,6 +134,9 @@
             <if test="createTime != null" >
                 #{createTime,jdbcType=TIMESTAMP},
             </if>
+            <if test="phoneNumber != null ">
+                #{phoneNumber},
+            </if>
         </trim>
     </insert>
 
@@ -154,6 +169,9 @@
             </if>
             <if test="refuseReason != null ">
                 application.refuse_reason =#{refuseReason},
+            </if>
+            <if test="phoneNumber != null ">
+                application.phone_number =#{phoneNumber},
             </if>
         </set>
         where application.application_id =#{applicationId}

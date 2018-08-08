@@ -1,21 +1,16 @@
 package com.service.impl;
 
 import com.common.cache.CacheClient;
-import com.common.entity.SentenceConstants;
 import com.common.utils.SvcUtils;
 import com.dao.mapper.MessageMapper;
-import com.dao.mapper.GoldMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.pojo.Message;
-import com.pojo.Gold;
-import com.pojo.User;
 import com.service.IMessageSvc;
 import com.service.IUserSvc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
@@ -38,12 +33,12 @@ public class MessageSvcImpl implements IMessageSvc {
     IUserSvc userSvcImpl;
 
     @Override
-    public Integer countMessageByCondition(Message message) {
+    public Integer countMessageByCondition(Message message)throws Exception {
         return messageMapper.countMessageByCondition(message);
     }
 
     @Override
-    public PageInfo getMessageByConditionAndPage(Message message, Integer pageNum, Integer pageSize) {
+    public PageInfo getMessageByConditionAndPage(Message message, Integer pageNum, Integer pageSize)throws Exception {
         if(pageNum==null)
             pageNum=1;
         if(pageSize==null||pageSize<=0)
@@ -55,14 +50,14 @@ public class MessageSvcImpl implements IMessageSvc {
     }
 
     @Override
-    public PageInfo getMessageByConditionAndPage(Message message, Integer pageNum) {
+    public PageInfo getMessageByConditionAndPage(Message message, Integer pageNum)throws Exception {
         return getMessageByConditionAndPage(message,pageNum,defaultPageSize);
     }
 
 
 
     @Override
-    public Integer addMessageOnly(Integer userId, Integer senderUserId,Integer messageType,Integer messageEssayId,String messageContent) {
+    public Integer addMessageOnly(Integer userId, Integer senderUserId,Integer messageType,Integer messageEssayId,String messageContent)throws Exception {
         Message message=new Message();
         message.setMessageUserId(userId);
         //message.(new Timestamp(System.currentTimeMillis()));
@@ -74,6 +69,9 @@ public class MessageSvcImpl implements IMessageSvc {
         message.setMessageEssayId(messageEssayId);
 
         int cNum= messageMapper.addMessage(message);
+        if(cNum!=1){
+            throw new Exception(message.toString());
+        }
         logger.info("messageMapper.addMessage结果为:"+cNum);
         return cNum;
     }
@@ -81,24 +79,34 @@ public class MessageSvcImpl implements IMessageSvc {
 
 
     @Override
-    public Message getMessageByAccurateCondition(Message message) {
+    public Message getMessageByAccurateCondition(Message message)throws Exception {
         List<Message> result= messageMapper.getMessageByCondition(message);
+        if(result.size()!=1){
+            logger.info(message.toString());
+        }
         return svcUtils.judgeResultList(result);
     }
     @Override
-    public Message getMessageById(Integer id) {
+    public Message getMessageById(Integer id)throws Exception {
         Message pa=new Message();
         pa.setMessageId(id);
         List<Message> result= messageMapper.getMessageByCondition(pa);
+        if(result.size()!=1){
+            throw new Exception("id="+id.toString());
+        }
         return svcUtils.judgeResultList(result);
     }
 
     @Override
-    public Integer makeMessageIsReadInDb(Integer messageId) {
+    public Integer makeMessageIsReadInDb(Integer messageId)throws Exception {
         Message message=new Message();
         message.setMessageId(messageId);
         message.setIsRead(1);
 
-        return messageMapper.updateMessage(message);
+        int i= messageMapper.updateMessage(message);
+        if(i!=1){
+            throw new Exception(message.toString());
+        }
+        return  i;
     }
 }

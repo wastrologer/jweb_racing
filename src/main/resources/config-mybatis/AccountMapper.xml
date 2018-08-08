@@ -22,6 +22,9 @@
             <if test="withdrawalFreeze!= null ">
                 AND t_user_account.withdrawal_freeze =#{withdrawalFreeze}
             </if>
+            <if test="allowCoin!= null ">
+                AND t_user_account.allow_coin =#{allowCoin}
+            </if>
         </where>
     </sql>
 
@@ -39,7 +42,7 @@
         <include refid="whereSql"/>
     </select>
 
-    <insert id="addAccount"  parameterType="com.pojo.Account"  >
+    <insert id="addAccount"  parameterType="com.pojo.Account"  useGeneratedKeys="true" keyProperty="accountId" >
         insert into `t_user_account`
         <trim prefix="(" suffix=")" suffixOverrides="," >
             <if test="accountId != null" >
@@ -100,10 +103,13 @@
                  t_user_account.total_coin_account =t_user_account.total_coin_account +#{totalCoinAccount},
             </if>
             <if test="allowWithdrawal != null ">
-                 t_user_account.allow_withdrawal =#{allowWithdrawal},
+                 t_user_account.allow_withdrawal =t_user_account.allow_withdrawal +#{allowWithdrawal},
             </if>
             <if test="withdrawalFreeze!= null ">
-                 t_user_account.withdrawal_freeze =#{withdrawalFreeze},
+                 t_user_account.withdrawal_freeze =t_user_account.withdrawal_freeze +#{withdrawalFreeze},
+            </if>
+            <if test="allowCoin!= null ">
+                t_user_account.allow_coin =t_user_account.allow_coin+#{allowCoin},
             </if>
         </set>
         <where>

@@ -21,6 +21,21 @@ public class UserToken implements java.io.Serializable{
 	private Timestamp createTime;
 	private Timestamp lastUpdateTime;
 
+	@Override
+	public String toString() {
+		return "UserToken{" +
+				"token='" + token + '\'' +
+				", userId=" + userId +
+				", signType='" + signType + '\'' +
+				", authSeq='" + authSeq + '\'' +
+				", authTime=" + authTime +
+				", expireTime=" + expireTime +
+				", lastRefreshTime=" + lastRefreshTime +
+				", createTime=" + createTime +
+				", lastUpdateTime=" + lastUpdateTime +
+				'}';
+	}
+
 	public Timestamp getCreateTime() {
 		return createTime;
 	}
@@ -43,18 +58,6 @@ public class UserToken implements java.io.Serializable{
 
 	public void setLastRefreshTime(Long lastRefreshTime) {
 		this.lastRefreshTime = lastRefreshTime;
-	}
-
-	@Override
-	public String toString() {
-		return "UserToken{" +
-				"token='" + token + '\'' +
-				", userId=" + userId +
-				", signType='" + signType + '\'' +
-				", authSeq='" + authSeq + '\'' +
-				", authTime=" + authTime +
-				", expireTime=" + expireTime +
-				'}';
 	}
 
 	public static long getSerialVersionUID() {

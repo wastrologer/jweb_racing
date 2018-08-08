@@ -80,10 +80,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			userName = request.getParameter("userName");
 			utoken = request.getParameter("utoken");
 		}
+
+		if (isNoNeedLoginUrl(requestURI)) {
+			printParams(request);
+			return true;
+		}
 		
-		
-/*		//判断用户是否是黑名单用户
-		if (!StringUtils.isEmpty(userName) && userSvc.getUserByTelephone(userName).getBlackUser() == 2) {
+		//判断用户是否是黑名单用户
+		if (userName != null && userSvcImpl.getUserByUserName(userName).getIsDisable() == 1) {
 			JSONObject responseJSONObject = new JSONObject();
 			responseJSONObject.put("errorCode", ErrorCode.IS_BLACK_USER);
 			responseJSONObject.put("data", null);
@@ -91,13 +95,10 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 			expiredAllCookie(request.getCookies(), response);
 			responseJson(response, responseJSONObject);
 			return false;
-		}*/
-		
-		
-		if (isNoNeedLoginUrl(requestURI)) {
-			printParams(request);
-			return true;
 		}
+		
+		
+
 		
 		if (userName == null || utoken == null || signType == null) {
 			JSONObject responseJSONObject = new JSONObject();

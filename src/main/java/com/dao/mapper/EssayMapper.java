@@ -8,18 +8,18 @@ import com.pojo.User;
 import java.util.List;
 
 public interface EssayMapper {
-    public List<Essay> getEssayByCollectionCondition(Collection collection);
-    public List<Essay> getEssayByUserList(List<Integer> list);
-    public Essay getEssayComments();
-    public Integer countEssayByCondition(Essay essay);
-    public List<Essay> getEssayByAccurateCondition(Essay essay);
-    public List<Essay> getEssayByFuzzyCondition(Essay essay);
-    public List<Essay> getEssayByCondition(EssayParam essayParam);
-    public List<Essay> getEssayOrderByTime(Essay essay);
-    public List<Essay> getEssayOrderByClick(Essay essay);
-    public Integer addEssay(Essay essay);
-    public Integer updateEssay(Essay essay);
-    public Integer updateEssayBatch(User user);
-    public Integer deleteEssayById(Integer id);
+    public List<Essay> getEssayByCollectionCondition(Collection collection)throws Exception;
+    public List<Essay> getEssayByUserList(List<Integer> list)throws Exception;
+    public Essay getEssayComments()throws Exception;
+    public Integer countEssayByCondition(Essay essay)throws Exception;
+    public List<Essay> getEssayByAccurateCondition(Essay essay)throws Exception;
+    public List<Essay> getEssayByFuzzyCondition(Essay essay)throws Exception;
+    public List<Essay> getEssayByCondition(EssayParam essayParam)throws Exception;
+    public List<Essay> getEssayOrderByTime(Essay essay)throws Exception;
+    public List<Essay> getEssayOrderByClick(Essay essay)throws Exception;
+    public Integer addEssay(Essay essay)throws Exception;
+    public Integer updateEssay(Essay essay)throws Exception;
+    public Integer updateEssayBatch(User user)throws Exception;
+    public Integer deleteEssayById(Integer id)throws Exception;
 
 }

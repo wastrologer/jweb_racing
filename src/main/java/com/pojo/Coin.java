@@ -12,6 +12,19 @@ public class Coin {
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
 
+    @Override
+    public String toString() {
+        return "Coin{" +
+                "coinRecordId=" + coinRecordId +
+                ", coinRecordTime=" + coinRecordTime +
+                ", coinNum=" + coinNum +
+                ", coinUserId=" + coinUserId +
+                ", coinReason='" + coinReason + '\'' +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
+
     public Timestamp getCreateTime() {
         return createTime;
     }

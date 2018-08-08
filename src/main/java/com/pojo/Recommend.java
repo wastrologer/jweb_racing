@@ -1,7 +1,6 @@
 package com.pojo;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 public class Recommend {
     private Integer recommendId;
@@ -11,6 +10,18 @@ public class Recommend {
 
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
+
+    @Override
+    public String toString() {
+        return "Recommend{" +
+                "recommendId=" + recommendId +
+                ", userId=" + userId +
+                ", essayId=" + essayId +
+                ", commentId=" + commentId +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                '}';
+    }
 
     public Timestamp getCreateTime() {
         return createTime;
@@ -26,16 +37,6 @@ public class Recommend {
 
     public void setLastUpdateTime(Timestamp lastUpdateTime) {
         this.lastUpdateTime = lastUpdateTime;
-    }
-
-    @Override
-    public String toString() {
-        return "Recommend{" +
-                "recommendId=" + recommendId +
-                ", userId=" + userId +
-                ", essayId=" + essayId +
-                ", commentId=" + commentId +
-                '}';
     }
 
     public Integer getRecommendId() {

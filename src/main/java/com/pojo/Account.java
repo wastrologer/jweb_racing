@@ -11,6 +11,30 @@ public class Account {
     private Integer withdrawalFreeze;
     private Timestamp createTime;
     private Timestamp lastUpdateTime;
+    private Integer allowCoin;
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "accountId=" + accountId +
+                ", userId=" + userId +
+                ", totalGoldAccount=" + totalGoldAccount +
+                ", totalCoinAccount=" + totalCoinAccount +
+                ", allowWithdrawal=" + allowWithdrawal +
+                ", withdrawalFreeze=" + withdrawalFreeze +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", allowCoin=" + allowCoin +
+                '}';
+    }
+
+    public Integer getAllowCoin() {
+        return allowCoin;
+    }
+
+    public void setAllowCoin(Integer allowCoin) {
+        this.allowCoin = allowCoin;
+    }
 
     public Integer getAccountId() {
         return accountId;

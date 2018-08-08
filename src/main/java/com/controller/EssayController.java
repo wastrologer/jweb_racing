@@ -2,7 +2,6 @@ package com.controller;
 
 import com.common.cache.CacheClient;
 import com.common.entity.Constants;
-import com.common.mq.MsgProducer;
 import com.common.utils.StringUtil;
 import com.common.utils.SvcUtils;
 import com.constant.ErrorCode;
@@ -12,6 +11,8 @@ import com.pojo.*;
 import com.service.ICollectionSvc;
 import com.service.IEssaySvc;
 import com.service.IUserSvc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +24,8 @@ import java.util.*;
 @Controller
 @RequestMapping("/essay")
 public class EssayController extends BaseController {
+    protected static final Logger logger = LoggerFactory.getLogger(EssayController.class);
+
     @Resource
     private IUserSvc userSvcImpl;
 
@@ -34,8 +37,6 @@ public class EssayController extends BaseController {
     private CacheClient cacheClient;
     @Resource
     private SvcUtils svcUtils;
-    @Resource
-    private MsgProducer msgProducer;
 
     private int defaultSize=10;
 
@@ -61,6 +62,7 @@ public class EssayController extends BaseController {
             return map;
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -77,15 +79,14 @@ public class EssayController extends BaseController {
                 if(user!=null){
                     if(essay.getEssayType()!=null&&essay.getEssayType()==Constants.CLUB_ESSAY_ID&&!user.getAuthId().equals(Constants.MANAGER_AUTH_ID))
                         return  getErrorMap(ErrorCode.USER_AUTH_ERROR,"没有权限");
-                    Integer res=essaySvcImpl.addEssay(user,essay);
-                    if(res==1){
-                        return getSuccessMap();
-                    }
-                return  getErrorMap(ErrorCode.ESSAY_CREATE_ERROR,"文章创建失败");
+                    Integer essayId=essaySvcImpl.addEssay(user,essay);
+                    return getStrMap("essayId",essayId);
+                //return  getErrorMap(ErrorCode.ESSAY_CREATE_ERROR,"文章创建失败");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -111,6 +112,7 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -132,7 +134,7 @@ public class EssayController extends BaseController {
                     pc.setUserId(user.getUserId());
                     pc.setIsPublished(1);
                     PageInfo pageInfo=essaySvcImpl.getEssayByCollectionAndPage(pc,num,size);
-                    svcUtils.judgeEssayListRecommendedAndConcerned(user.getUserId(),pageInfo.getList());
+                    svcUtils.judgeEssayListRecommendedAndConcernedAndAuthId(user.getUserId(),pageInfo.getList());
 
                     Map<String, Object> map = getStrMap(pageInfo);
                     return map;
@@ -140,6 +142,7 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -190,13 +193,14 @@ public class EssayController extends BaseController {
                     essayParam.setEssayTypeList(typeList);
                     PageInfo pageInfo=essaySvcImpl.getEssayByConditionAndPage(essayParam,num,size);
 
-                    svcUtils.judgeEssayListRecommendedAndConcerned(user.getUserId(),pageInfo.getList());
+                    svcUtils.judgeEssayListRecommendedAndConcernedAndAuthId(user.getUserId(),pageInfo.getList());
                     Map<String, Object> map = getStrMap(pageInfo);
                     return map;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -241,7 +245,8 @@ public class EssayController extends BaseController {
                         msgProducer.send(MsgCommandId.FORUM_ESSAY_CLICKNUM_ID,msg);*/
                         logger.info("updateEssayClickNum(pe)");
                     }
-                    essay.setUserPic(user.getUserPic());
+                    //essay.setUserPic(user.getUserPic());
+                    essay.setAuthId(svcUtils.getAuthByUserId(essay.getUserId()));
                     essay.setCollected(svcUtils.judgeCollected(user.getUserId(),essay.getEssayId()));
                     essay.setRecommended(svcUtils.judgeEssayRecommended(user.getUserId(),essay.getEssayId()));
                     essay.setConcerned(svcUtils.judgeConcerned(user.getUserId(),essay.getUserId()));
@@ -252,6 +257,7 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -281,6 +287,7 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -299,14 +306,16 @@ public class EssayController extends BaseController {
                 User user= userSvcImpl.getUserById((int)uk.getUserId());
                 PageInfo<Essay> pageInfo=essaySvcImpl.getEssayByConcernAndPage(user.getUserId(),num,size);
                 Map<String, Object> map;
-                for(Essay e:pageInfo.getList()){
+/*                for(Essay e:pageInfo.getList()){
                     e.setRecommended(svcUtils.judgeEssayRecommended(user.getUserId(),e.getEssayId()));
-                }
+                }*/
+                svcUtils.judgeEssayListRecommendedAndConcernedAndAuthId(user.getUserId(),pageInfo.getList());
                 map = getStrMap(pageInfo);
                 return map;
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -330,8 +339,8 @@ public class EssayController extends BaseController {
             param.setRecommendNumFrom(Constants.RECOMMEND_NUM_FROM);
             List<Integer> list = Constants.ARTICLE_ESSAY_TYPES;
             param.setEssayTypeList(list);
-            param.setOrderBy(Constants.ORDER_BY_RECOMMEND_NUM);
-            PageInfo pageInfoTop=essaySvcImpl.getEssayByConditionAndPage(param,1,1);
+            //param.setOrderBy(Constants.ORDER_BY_RECOMMEND_NUM);
+            PageInfo pageInfoTop=essaySvcImpl.getEssayByConditionAndPage(param,num,size);
             //get null
             if(pageInfoTop.getList().size()==0)
                 return getStrMap("list",null,"totalAccount",0);
@@ -339,22 +348,23 @@ public class EssayController extends BaseController {
             int id=top.getEssayId();
             param.setOrderBy(null);
             param.setExceptionIdList(Arrays.asList(id));
-            PageInfo pageInfo=essaySvcImpl.getEssayByConditionAndPage(param,num,size );
+/*            PageInfo pageInfo=essaySvcImpl.getEssayByConditionAndPage(param,num,size );
             List<Essay> hots=(List<Essay>)pageInfo.getList();
             ArrayList<Essay> essays=new ArrayList<>();
             if(num==1)
                 essays.add(top);
-            essays.addAll(hots);
+            essays.addAll(hots);*/
 
             UserToken uk=getUserToken();
             Integer userId=null;
             if(uk!=null){
                 userId=(int)uk.getUserId();
             }
-            svcUtils.judgeEssayListRecommendedAndConcerned(userId,essays);
-            return getStrMap(essays, (int) (pageInfo.getTotal()+pageInfoTop.getTotal()));
+            svcUtils.judgeEssayListRecommendedAndConcernedAndAuthId(userId,pageInfoTop.getList());
+            return getStrMap(pageInfoTop.getList(), (int) (pageInfoTop.getTotal()));
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -362,28 +372,65 @@ public class EssayController extends BaseController {
 
 
     /*获取各类essay，
-    type：0系统，1日报，2会所，3新人学堂，4新鲜事，*/
+    type：0系统，1日报，2会所，3新人学堂，4新鲜事，
+    regionType=1,精确到区*/
     @RequestMapping("/getOneTypeOfEssay")
     @ResponseBody
     public Map<String, Object> getOneTypeOfEssay(@RequestParam(value="topicId", required=false)Integer topicId,
-                                                 @RequestParam(value="regionId", required=true)Integer regionId,
+                                                 @RequestParam(value="regionId", required=false)Integer regionId,
                                                  @RequestParam(value = "regionType", required = false) Integer regionType,
                                                  @RequestParam(value="num", required=false)Integer num,
                                            @RequestParam(value="size", required=false)Integer size,
                                            @RequestParam(value="essayType", required=true)Integer essayType){
         try {
-            if(essayType==4)//news
+            return getListOrderByTime( topicId,regionId,  regionType,num,size,essayType);
+/*            if(essayType==4)//news
                 return  getNewsListByTypeAndPage( topicId,regionId,  regionType,num,size,Arrays.asList(essayType));
             else //article
-                return  getArticleListByTypeAndPage( topicId,regionId,  regionType,num,size,Arrays.asList(essayType));
+                return  getArticleListByTypeAndPage( topicId,regionId,  regionType,num,size,Arrays.asList(essayType));*/
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
     }
-    public Map<String, Object> getNewsListByTypeAndPage(Integer topicId,Integer regionId,  Integer regionType,
-                                                        Integer num, Integer size, List<Integer> essayType){
+    public Map<String, Object> getListOrderByTime(Integer topicId,Integer regionId,  Integer regionType,
+                                                        Integer num, Integer size, Integer essayType)throws Exception{
+        Integer cityId=null;
+        UserToken uk=getUserToken();
+        Integer userId=null;
+        if(regionType!=null&&regionType==1){
+        } else if(essayType==3||essayType==4){
+            regionId= null;
+        } else{
+            if(regionId==1){
+                regionId = null;
+                cityId=1;
+            }else{
+                regionId=null;
+                cityId=2;
+            }
+        }
+        EssayParam totalParam=svcUtils.getNormalEssayParam(cityId,regionId,essayType);
+        if(topicId!=null){
+            totalParam.setTopicId(topicId);
+        }
+        PageInfo<Essay> totalPageInfo=null;
+        if(essayType==4){
+            totalPageInfo=essaySvcImpl.getEssayByConditionAndPage(totalParam,num,size);
+        }else{
+            totalPageInfo=essaySvcImpl.getSimpleEssayByConditionAndPage(totalParam,num,size);
+        }
+        if(uk!=null){
+            userId=(int)uk.getUserId();
+            svcUtils.judgeEssayListRecommendedAndConcernedAndAuthId(userId,totalPageInfo.getList());
+        }
+        return getStrMap(totalPageInfo);
+
+    }
+/*    public Map<String, Object> getNewsListByTypeAndPage(Integer topicId,Integer regionId,  Integer regionType,
+                                                        Integer num, Integer size, List<Integer> essayType)throws Exception{
         List<Integer> regionIdList;
         UserToken uk=getUserToken();
         Integer userId=null;
@@ -470,7 +517,8 @@ public class EssayController extends BaseController {
 
     }
 
-    public Map<String, Object> getArticleListByTypeAndPage(Integer topicId,Integer regionId,  Integer regionType,Integer num, Integer size, List<Integer> essayType){
+    public Map<String, Object> getArticleListByTypeAndPage(Integer topicId,Integer regionId,  Integer regionType,
+                                                           Integer num, Integer size, List<Integer> essayType)throws Exception{
         List<Integer> regionIdList;
         UserToken uk=getUserToken();
         Integer userId=null;
@@ -480,7 +528,9 @@ public class EssayController extends BaseController {
         if(regionType!=null&&regionType==1){
             regionIdList= new ArrayList<Integer>();
             regionIdList.add(regionId);
-        } else {
+        } else if(essayType.contains(3)){
+            regionIdList= svcUtils.getAllRegionList();
+        } else{
             regionIdList = svcUtils.getCityRegionListByRegionId(regionId);
         }
         if(num==null){
@@ -493,12 +543,12 @@ public class EssayController extends BaseController {
         if(topicId!=null){
             totalParam.setTopicId(topicId);
         }
-        Integer total=(int)essaySvcImpl.getEssayByConditionAndPage(totalParam,null,null).getTotal();
+        Integer total=(int)essaySvcImpl.getSimpleEssayByConditionAndPage(totalParam,null,null).getTotal();
         EssayParam param=svcUtils.getHotEssayParam(regionIdList,essayType);
         if(topicId!=null){
             param.setTopicId(topicId);
         }
-        PageInfo pageInfoTop=essaySvcImpl.getEssayByConditionAndPage(param,1,1);
+        PageInfo pageInfoTop=essaySvcImpl.getSimpleEssayByConditionAndPage(param,1,1);
         //get null
         int id=0;
         Essay   top = null;
@@ -510,7 +560,7 @@ public class EssayController extends BaseController {
         List<Integer> exceptionList=new ArrayList<>();
         exceptionList.add(id);
         param.setExceptionIdList(exceptionList);
-        PageInfo pageInfoHot=essaySvcImpl.getEssayByConditionAndPage(param,num,size);
+        PageInfo pageInfoHot=essaySvcImpl.getSimpleEssayByConditionAndPage(param,num,size);
         List<Essay> hots=(List<Essay>)pageInfoHot.getList();
         ArrayList<Essay> essays=new ArrayList<>();
         //判断页码
@@ -523,7 +573,7 @@ public class EssayController extends BaseController {
         List<Essay> allhots = null;
         Integer lastPageNum = null;
         if(num>=hotPage){
-            PageInfo<Essay> pageInfoAllHot=essaySvcImpl.getEssayByConditionAndPage(param,1,999);
+            PageInfo<Essay> pageInfoAllHot=essaySvcImpl.getSimpleEssayByConditionAndPage(param,1,999);
             allhots=pageInfoAllHot.getList();
         }
         if(num<hotPage){
@@ -550,7 +600,7 @@ public class EssayController extends BaseController {
             if(topicId!=null){
                 param.setTopicId(topicId);
             }
-            PageInfo<Essay> pageInfo=essaySvcImpl.getEssayByConditionAndPage(param,1,secondSize);
+            PageInfo<Essay> pageInfo=essaySvcImpl.getSimpleEssayByConditionAndPage(param,1,secondSize);
             List<Essay> normalList=pageInfo.getList();
             essays.addAll(normalList);
             for(Essay e:essays){
@@ -566,7 +616,7 @@ public class EssayController extends BaseController {
             if(topicId!=null){
                 param.setTopicId(topicId);
             }
-            PageInfo pageInfoAll=essaySvcImpl.getEssayByConditionAndPage(param,1,size);
+            PageInfo pageInfoAll=essaySvcImpl.getSimpleEssayByConditionAndPage(param,1,size);
             lastPageNum =pageInfoAll.getPages();
             if(num>lastPageNum){
                 return getErrorMap(ErrorCode.PAGE_NOT_EXIST,"已到最后一页");
@@ -575,13 +625,13 @@ public class EssayController extends BaseController {
                 exceptionList.add(e.getEssayId());
             }
             param.setExceptionIdList(exceptionList);
-            PageInfo<Essay> pageInfoNormalInHotPage=essaySvcImpl.getEssayByConditionAndPage(param,1,secondSize);
+            PageInfo<Essay> pageInfoNormalInHotPage=essaySvcImpl.getSimpleEssayByConditionAndPage(param,1,secondSize);
             List<Essay> normalListInHotPage=pageInfoNormalInHotPage.getList();
             for(Essay e:normalListInHotPage){
                 exceptionList.add(e.getEssayId());
             }
             param.setExceptionIdList(exceptionList);
-            PageInfo<Essay> pageInfoResult=essaySvcImpl.getEssayByConditionAndPage(param,num-hotPage,size);
+            PageInfo<Essay> pageInfoResult=essaySvcImpl.getSimpleEssayByConditionAndPage(param,num-hotPage,size);
             List<Essay> result=pageInfoResult.getList();
             for(Essay e:result){
                 e.setRecommended(svcUtils.judgeEssayRecommended(userId,e.getEssayId()));
@@ -590,10 +640,10 @@ public class EssayController extends BaseController {
             }
             return getStrMap(result,total);
         }
-    }
+    }*/
 
     /*makeMsgIsRead*/
-    @RequestMapping("/customer/makeMsgIsRead")
+/*    @RequestMapping("/customer/makeMsgIsRead")
     @ResponseBody
     public Map<String, Object> makeMsgIsRead(@RequestParam(value="essayId", required=true)Integer id){
         try {
@@ -628,15 +678,16 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
         Map<String, Object> map = getUnlogedErrorMap();
         return map;
-    }
+    }*/
 
     /*judgeMsgExit*/
-    @RequestMapping("/customer/judgeMsgExit")
+/*    @RequestMapping("/customer/judgeMsgExit")
     @ResponseBody
     public Map<String, Object> judgeMsgExit(@RequestParam(value="essayId", required=false)Integer essayId,
                                             @RequestParam(value="essayType", required=true)Integer essayType){
@@ -680,12 +731,13 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
         Map<String, Object> map = getUnlogedErrorMap();
         return map;
-    }
+    }*/
 
 
     @RequestMapping("/customer/recommendEssay")
@@ -736,6 +788,7 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -761,13 +814,14 @@ public class EssayController extends BaseController {
             if(uk!=null){
                 userId=(int)uk.getUserId();
             }
-            svcUtils.judgeEssayListRecommendedAndConcerned(userId,pageInfo.getList());
+            svcUtils.judgeEssayListRecommendedAndConcernedAndAuthId(userId,pageInfo.getList());
 
             Map<String, Object> map = getStrMap(pageInfo);
             return map;
 
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -788,8 +842,14 @@ public class EssayController extends BaseController {
                 if(user!=null){
                     Essay essay=essaySvcImpl.getEssayByEssayId(essayId);
                     Integer essayUserId=essay.getUserId();
-                    List<Integer> regionIdList= svcUtils.getCityRegionListByRegionId(regionId);
-                    EssayParam param=svcUtils.getNormalEssayParam(regionIdList,null);
+                    //List<Integer> regionIdList= svcUtils.getCityRegionListByRegionId(regionId);
+                    Integer cityId;
+                    if(regionId>6&&regionId<19){
+                        cityId=2;
+                    }else{
+                        cityId=1;
+                    }
+                    EssayParam param=svcUtils.getNormalEssayParam(cityId,null,null);
                     param.setOrderBy(null);
                     List<Integer> essayUserList=new ArrayList<>();
                     essayUserList.add(essayUserId);
@@ -815,6 +875,7 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -839,13 +900,34 @@ public class EssayController extends BaseController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
         return getUnlogedErrorMap();
     }
 
-
+    /*addAccusation*/
+    @RequestMapping("/customer/addOpinion")
+    @ResponseBody
+    public Map<String, Object> addOpinion(@RequestParam(value = "content", required = true) String content){
+        try {
+            UserToken uk=getUserToken();
+            if(uk!=null){//
+                int i=svcUtils.addOpinion(uk.getUserId(),content);
+                if(i==1){
+                    return  getSuccessMap();
+                }else
+                    return  getErrorMap("添加失败",null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("error",e);
+            Map<String, Object> map = getErrorMap(e.getClass().getName());
+            return map;
+        }
+        return getUnlogedErrorMap();
+    }
 
     /*    *//*日报essay*//*
     @RequestMapping("/journal")
@@ -856,6 +938,7 @@ public class EssayController extends BaseController {
             return  getListByTypeAndPage(principal,num,size,Arrays.asList(1));
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -870,6 +953,7 @@ public class EssayController extends BaseController {
             return  getListByTypeAndPage(principal,num,size,Arrays.asList(2));
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -884,6 +968,7 @@ public class EssayController extends BaseController {
             return  getListByTypeAndPage(principal,num,size,Arrays.asList(3));
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }
@@ -898,6 +983,7 @@ public class EssayController extends BaseController {
             return  getListByTypeAndPage(principal,num,size,Arrays.asList(0));
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("error",e);
             Map<String, Object> map = getErrorMap(e.getClass().getName());
             return map;
         }

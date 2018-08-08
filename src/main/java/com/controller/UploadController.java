@@ -234,7 +234,7 @@ public class UploadController {
 		// 返回保持结果至用户
 		Map<String, Object> map = new HashMap<String, Object>();
 		// 获取用户信息
-		 userToken = userInfoUtil.getUserToken(request);
+		// userToken = userInfoUtil.getUserToken(request);
 		if (userToken == null) {
 			// 提示上传失败，用户没有认证
 			map.put("errorCode", 2202);
@@ -361,7 +361,10 @@ public class UploadController {
 					//给上传的图片打水印  iconPath：水印图片路径 ，srcImgPath：源图片路径，targerPath：目标图片路径
 					// imgIsWater:上传的图片是否打水印 1否2是
 					if (!StringUtils.isEmpty(imgIsWater) && imgIsWater.equals("1")) {
-
+						int[] imageWidthHeight = ImageWarterUtil.getImageWidthHeight(destFilePath);
+						logger.info("wight=" + imageWidthHeight[0] +",height=" + imageWidthHeight[1]);
+						ImageWarterUtil.setImageMarkOptions(1f, (imageWidthHeight[0]+imageWidthHeight[1])/200+10,
+								(imageWidthHeight[0]+imageWidthHeight[1])/200, null, null);
 					}else{
 						user=userSvcImpl.getUserById((int)userToken.getUserId());
 						//获取原图长度宽度

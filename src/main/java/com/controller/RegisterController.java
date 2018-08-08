@@ -5,18 +5,22 @@ import com.common.entity.CommonEnum;
 import com.common.entity.Constants;
 import com.common.entity.ReturnValueConstants;
 import com.common.entity.SMSVo;
-import com.common.utils.HelperUtil;
-import com.common.utils.ImageValidationUtil;
+import com.common.jiyan.GeetestConfig;
+import com.common.jiyan.sdk.GeetestLib;
 import com.common.utils.SendSMS;
 import com.common.utils.StringUtil;
 import com.constant.ErrorCode;
-import com.pojo.ImageCode;
-import com.pojo.ImageCodeCount;
-import com.pojo.ImageValidateCode;
 import com.pojo.User;
 import com.service.IUserSvc;
-import net.rubyeye.xmemcached.GetsResponse;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -27,12 +31,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/reg")
 public class RegisterController extends BaseController {
+    protected static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
 
     @Value("${baseLoginUrl}")
     private String baseLoginUrl = "http://localhost:8080";
@@ -43,81 +51,123 @@ public class RegisterController extends BaseController {
     @Autowired
     private CacheClient cacheClient;
 
-    private String isNeedAuthCode = "1"; // 登录是否需要验证码 1否(0000可做为万能验证码) 2是
+    @Value("${user.register.isauthcode}")
+    private String isNeedAuthCode = "2"; // 登录是否需要验证码 1否(0000可做为万能验证码) 2是
 
     @Value("${company.account.number}")
     private String companyAccountNumber = "";
 
 
-    @RequestMapping(value = "/getValidateImg", method =  { RequestMethod.GET, RequestMethod.POST })
-
-    public String getValidateImg(HttpServletRequest request, HttpServletResponse response) {
-        try {
-
-            request.setCharacterEncoding("utf-8");
-            response.setContentType("text/html;charset=utf-8");
-
-            // 设置响应的类型格式为图片格式
-            response.setContentType("image/jpeg");
-//			response.setHeader("content-type", "image/jpeg;charset=UTF-8");
-            //禁止图像缓存。
-            response.setHeader("Pragma", "No-cache");
-            response.setHeader("Cache-Control", "no-cache");
-            response.setDateHeader("Expires", 0);
-
-
-            String ip = getIpAddr(request);
-            GetsResponse<Object> smsCountVoGetsResponse = cacheClient.gets(Constants.IMAGE_CODE_Count_KEY_STR + ip);
-            ImageCodeCount ImageCodeCount;
-
-            ImageValidateCode vCode = null;
-            if (smsCountVoGetsResponse == null) {
-                vCode = new ImageValidateCode(135,38,5,200);
-
-                ImageCode imc = new ImageCode();
-                imc.setContent(vCode.getImageCode());
-                imc.setTimestamp(HelperUtil.getSecondStamp());
-
-                ImageCodeCount = new ImageCodeCount();
-                ImageCodeCount.setCount(1);
-                ImageCodeCount.setTimestamp(HelperUtil.getSecondStamp());
-                cacheClient.set(Constants.IMAGE_CODE_DETAIL_KEY_STR + ip, Constants.IMAGE_CODE_EXPIRE_SECOND, imc);
-                cacheClient.set(Constants.IMAGE_CODE_Count_KEY_STR + ip, Constants.IMAGE_CODE_COUNT_EXPIRE_SECOND, ImageCodeCount);
-            }else{
-                ImageCodeCount = (ImageCodeCount) smsCountVoGetsResponse.getValue();
-                if (ImageCodeCount.getCount() < Constants.DEFAULT_DAY_MAX_IMAGE_CODE) {
-                    ImageCode imc = (ImageCode) cacheClient.get(Constants.IMAGE_CODE_DETAIL_KEY_STR + ip);
-                    vCode = new ImageValidateCode(135,38,5,200);
-                    if (imc == null) {
-                        imc = new ImageCode();
-                        imc.setTimestamp(HelperUtil.getSecondStamp());
-                        imc.setContent(vCode.getImageCode());
-                    } else {
-                        imc.setContent(vCode.getImageCode());
-                        imc.setTimestamp(HelperUtil.getSecondStamp());
-                    }
-                    ImageCodeCount.setCount(ImageCodeCount.getCount() + 1);
-                    cacheClient.set(Constants.IMAGE_CODE_DETAIL_KEY_STR + ip, Constants.SMS_SEND_EXPIRE_SECOND, imc);
-                    cacheClient.cas(Constants.IMAGE_CODE_Count_KEY_STR + ip,
-                            (int) ((24 * 3600) - (HelperUtil.getSecondStamp() - ImageCodeCount.getTimestamp())),
-                            ImageCodeCount, smsCountVoGetsResponse.getCas());
-                }else{
-                    String info="访问次数超过最大数";
-                    logger.info(info);
-                    ImageValidationUtil.writeOutputInfo(info,response);
-                    return null;
-                }
-            }
-            vCode.write(response.getOutputStream());
-            vCode = null;
-        } catch (Exception e) {
-            String info="获取图片验证码异常";
-            logger.info(  info+e.getMessage());
-            ImageValidationUtil.writeOutputInfo(info,response);
-        }
-        return "";
-    }
-
+//    @RequestMapping(value = "/getValidateImg", method =  { RequestMethod.GET, RequestMethod.POST })
+//
+//    public String getValidateImg(HttpServletRequest request, HttpServletResponse response) {
+//        try {
+//
+//            request.setCharacterEncoding("utf-8");
+//            response.setContentType("text/html;charset=utf-8");
+//
+//            // 设置响应的类型格式为图片格式
+//            response.setContentType("image/jpeg");
+////			response.setHeader("content-type", "image/jpeg;charset=UTF-8");
+//            //禁止图像缓存。
+//            response.setHeader("Pragma", "No-cache");
+//            response.setHeader("Cache-Control", "no-cache");
+//            response.setDateHeader("Expires", 0);
+//
+//
+//            String ip = getIpAddr(request);
+//            GetsResponse<Object> smsCountVoGetsResponse = cacheClient.gets(Constants.IMAGE_CODE_Count_KEY_STR + ip);
+//            ImageCodeCount ImageCodeCount;
+//
+//            ImageValidateCode vCode = null;
+//            if (smsCountVoGetsResponse == null) {
+//                vCode = new ImageValidateCode(135,38,5,200);
+//
+//                ImageCode imc = new ImageCode();
+//                imc.setContent(vCode.getImageCode());
+//                imc.setTimestamp(HelperUtil.getSecondStamp());
+//
+//                ImageCodeCount = new ImageCodeCount();
+//                ImageCodeCount.setCount(1);
+//                ImageCodeCount.setTimestamp(HelperUtil.getSecondStamp());
+//                cacheClient.set(Constants.IMAGE_CODE_DETAIL_KEY_STR + ip, Constants.IMAGE_CODE_EXPIRE_SECOND, imc);
+//                cacheClient.set(Constants.IMAGE_CODE_Count_KEY_STR + ip, Constants.IMAGE_CODE_COUNT_EXPIRE_SECOND, ImageCodeCount);
+//            }else{
+//                ImageCodeCount = (ImageCodeCount) smsCountVoGetsResponse.getValue();
+//                if (ImageCodeCount.getCount() < Constants.DEFAULT_DAY_MAX_IMAGE_CODE) {
+//                    ImageCode imc = (ImageCode) cacheClient.get(Constants.IMAGE_CODE_DETAIL_KEY_STR + ip);
+//                    vCode = new ImageValidateCode(135,38,5,200);
+//                    if (imc == null) {
+//                        imc = new ImageCode();
+//                        imc.setTimestamp(HelperUtil.getSecondStamp());
+//                        imc.setContent(vCode.getImageCode());
+//                    } else {
+//                        imc.setContent(vCode.getImageCode());
+//                        imc.setTimestamp(HelperUtil.getSecondStamp());
+//                    }
+//                    ImageCodeCount.setCount(ImageCodeCount.getCount() + 1);
+//                    cacheClient.set(Constants.IMAGE_CODE_DETAIL_KEY_STR + ip, Constants.SMS_SEND_EXPIRE_SECOND, imc);
+//                    cacheClient.cas(Constants.IMAGE_CODE_Count_KEY_STR + ip,
+//                            (int) ((24 * 3600) - (HelperUtil.getSecondStamp() - ImageCodeCount.getTimestamp())),
+//                            ImageCodeCount, smsCountVoGetsResponse.getCas());
+//                }else{
+//                    String info="访问次数超过最大数";
+//                    logger.info(info);
+//                    ImageValidationUtil.writeOutputInfo(info,response);
+//                    return null;
+//                }
+//            }
+//            vCode.write(response.getOutputStream());
+//            vCode = null;
+//        } catch (Exception e) {
+//            String info="获取图片验证码异常";
+//            logger.info(  info+e.getMessage());
+//            ImageValidationUtil.writeOutputInfo(info,response);
+//        }
+//        return "";
+//    }
+    
+    /**
+	 * 获取滑动图形验证码
+	 * @return
+	 */
+	@RequestMapping(value="/getValidateImg")
+	public String imageValidateCode(HttpServletRequest request,HttpServletResponse response ,String telephone,String clientType) throws Exception{
+		try {
+			GeetestLib gtSdk = new GeetestLib(GeetestConfig.getGeetest_id(), GeetestConfig.getGeetest_key(), 
+					GeetestConfig.isnewfailback());
+	
+			String resStr = "{}";
+			
+			//自定义userid
+			String userid = telephone;
+			
+			//自定义参数,可选择添加
+			HashMap<String, String> param = new HashMap<String, String>(); 
+			param.put("user_id", telephone); //网站用户id
+			param.put("client_type", clientType); //web:电脑上的浏览器；h5:手机上的浏览器，包括移动应用内完全内置的web_view；native：通过原生SDK植入APP应用的方式
+			param.put("ip_address", "127.0.0.1"); //传输用户请求验证时所携带的IP
+	
+			//进行验证预处理
+			int gtServerStatus = gtSdk.preProcess(param);
+			
+			//将服务器状态设置到session中
+			request.getSession().setAttribute(gtSdk.gtServerStatusSessionKey, gtServerStatus);
+			//将userid设置到session中
+			request.getSession().setAttribute("userid", userid);
+			
+			resStr = gtSdk.getResponseStr();
+	
+			PrintWriter out = response.getWriter();
+			out.println(resStr);
+			}catch (Exception e) {
+				logger.info("获取滑动验证图片异常：" + e.getMessage());
+		}
+		return null;
+	}
+    
+    
+    
     /**
      * 发送登录短信验证码
      *
@@ -127,12 +177,13 @@ public class RegisterController extends BaseController {
      */
     @RequestMapping(value = "/smsValidation", method =  { RequestMethod.GET, RequestMethod.POST })
     @ResponseBody
-    public Map<String, Object> smsValidation(String telephone,String imageCode,
+    public Map<String, Object> smsValidation(String telephone,
                                              @RequestParam(required=false)String signType,
-                                             @RequestParam(required=false)Byte smsUseType) {
+                                             @RequestParam(required=false)Byte smsUseType
+                                             ,String clientType) {
         Map<String, Object> map = getSuccessMap();
         try {
-            if (StringUtil.isEmpty(telephone) ||  StringUtil.isEmpty(imageCode)) {
+            if (StringUtil.isEmpty(telephone) ) {
                 map.put("errorCode", ErrorCode.PARAM_IS_NULL);
                 map.put("msg", "参数为空");
                 return map;
@@ -155,21 +206,82 @@ public class RegisterController extends BaseController {
 
 
             //===================2018-01-24 添加图片验证码=========================//
-            String ip = getIpAddr(request);//相同ip？
-            String imageKey = Constants.IMAGE_CODE_DETAIL_KEY_STR + ip;
-            ImageCode imc = (ImageCode) cacheClient.get(imageKey);
-            if (imc == null) {
-                map.put("errorCode", ErrorCode.IMAGE_CODE_NOT_EXIST_ERROR);
-                map.put("msg", "图片证码已过期，请重新获取");
-                return map;
-            } else if (!StringUtils.equalsIgnoreCase(imageCode, imc.getContent())) {
-                map.put("errorCode", ErrorCode.IMAGE_CODE_ERROR);
-                map.put("msg", "图片验证码错误");
-                logger.info("图片验证码错误:" + imc.getContent() + "--" + imageCode);
-                return map;
-            }
+//            String ip = getNewIpAddr(request);//相同ip？
+//            String imageKey = Constants.IMAGE_CODE_DETAIL_KEY_STR + ip;
+//            ImageCode imc = (ImageCode) cacheClient.get(imageKey);
+//            if (imc == null) {
+//                map.put("errorCode", ErrorCode.IMAGE_CODE_NOT_EXIST_ERROR);
+//                map.put("msg", "图片证码已过期，请重新获取");
+//                return map;
+//            } else if (!StringUtils.equalsIgnoreCase(imageCode, imc.getContent())) {
+//                map.put("errorCode", ErrorCode.IMAGE_CODE_ERROR);
+//                map.put("msg", "图片验证码错误");
+//                logger.info("图片验证码错误:" + imc.getContent() + "--" + imageCode);
+//                return map;
+//            }
             //===================2018-01-24 添加图片验证码=========================//
-
+            
+          //===========================滑动验证码===============================//
+			if (clientType == null) {
+				map.put("errCode", ErrorCode.PARAM_IS_NULL);
+				map.put("msg", "参数为空");
+				return map;
+			}
+			GeetestLib gtSdk = new GeetestLib(GeetestConfig.getGeetest_id(), GeetestConfig.getGeetest_key(), 
+					GeetestConfig.isnewfailback());
+			
+			String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
+			String validate = request.getParameter(GeetestLib.fn_geetest_validate);
+			String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+			
+			//从session中获取gt-server状态
+			int gt_server_status_code = (Integer) request.getSession().getAttribute(gtSdk.gtServerStatusSessionKey);
+			
+			//从session中获取userid
+			String userid = (String)request.getSession().getAttribute("userid");
+			
+			//自定义参数,可选择添加
+			HashMap<String, String> param = new HashMap<String, String>(); 
+			param.put("user_id", telephone); //网站用户id
+			param.put("client_type", clientType); //web:电脑上的浏览器；h5:手机上的浏览器，包括移动应用内完全内置的web_view；native：通过原生SDK植入APP应用的方式
+			param.put("ip_address", "127.0.0.1"); //传输用户请求验证时所携带的IP
+			
+			int gtResult = 0;
+			
+			if (gt_server_status_code == 1) {
+				//gt-server正常，向gt-server进行二次验证
+				
+				gtResult = gtSdk.enhencedValidateRequest(challenge, validate, seccode, param);
+				System.out.println(gtResult);
+			} else {
+				// gt-server非正常情况下，进行failback模式验证
+				
+				System.out.println("failback:use your own server captcha validate");
+				gtResult = gtSdk.failbackValidateRequest(challenge, validate, seccode);
+				System.out.println(gtResult);
+			}
+			
+			
+			if (gtResult == 1) {
+//			// 验证成功
+//			PrintWriter out = response.getWriter();
+//			JSONObject data = new JSONObject();
+//			try {
+//				data.put("status", "success");
+//				data.put("version", gtSdk.getVersionInfo());
+//			} catch (JSONException e) {
+//				e.printStackTrace();
+//			}
+//			out.println(data.toString());
+			}
+			else {
+				map.put("errCode", ErrorCode.IMAGE_CODE_ERROR);
+				map.put("msg", "滑动验证失败");
+				logger.info("滑动验证失败");
+				return map;
+			}
+			//===========================滑动验证码===============================//
+            
 
             boolean flag = Pattern.matches(Constants.REG_MOBILE, telephone);
             if (!flag) {
@@ -178,44 +290,7 @@ public class RegisterController extends BaseController {
                 return map;
             }
 
-//			boolean isRegister = false;
-//			if (signType.equalsIgnoreCase("APP")) {
-//				if (compareVersion("1.0.3", "1.0.2") < 0) {
-//					isRegister = true;
-//				}
-//			}else if(signType.equalsIgnoreCase("WEB")){
-//				isRegister = true;
-//			}
-//			if (isRegister) {
-//				User user = userSvc.getUserByTelephone(telephone);
-//				//帮用户注册用户账号
-//				if (user == null) {
-//					user = new User();
-//					user.setTelephone(telephone);
-//					user.setDeviceDesc(deviceDesc);
-//					user.setDeviceIdentifier(deviceIdentifier);
-//					user.setLongitude(longitude);
-//					user.setLatitude(latitude);
-//					user.setIp(appVersion.getAddressIp());
-//					user.setVersion(appVersion.getAppVersion());
-//					user.setCreateTime(new Date());
-//					if (null != latitude && null != longitude) {
-//						user.setCity(TxDiTuUtil.getCityByPosition(longitude, latitude));
-//					}
-//					Byte registerType = 0;
-//					if (signType.equals("APP")) {
-//						registerType = 1;
-//					}else{
-//						registerType = 2;
-//					}
-//					int resultVaule = userSvc.insertUser(user);
-//					if (resultVaule <=0 ) {
-//						map.put("errorCode", ErrorCode.CREATE_FAIL);
-//						map.put("msg", "创建用户失败");
-//						return map;
-//					}
-//				}
-//			}
+//			
 
             String smsCountKey = Constants.SMS_LOGIN_PASSWD_COUNT_KEY_STR + telephone;
             String smsKey = Constants.SMS_LOGIN_PASSWD_KEY_STR + telephone;
@@ -225,7 +300,7 @@ public class RegisterController extends BaseController {
             logger.info("登陆验证码 code:" + code);
 
 //			cacheClient.set(imageKey, 0, imc);
-            cacheClient.delete(imageKey);
+//            cacheClient.delete(imageKey);
         } catch (Exception e) {
             logger.error("exception:", e);
             map.put("errorCode", -1);
@@ -491,7 +566,18 @@ public class RegisterController extends BaseController {
         }
         return map;
     }
-
+/*    @RequestMapping(value = "/createUser1", method = {RequestMethod.GET,RequestMethod.POST})
+    @ResponseBody
+    public  Map<String, Object> createUser1() {
+        for(int i=10;i<60;i++){
+        String url="http://localhost:8080/proxy/reg/createUser?password=a1234567&smsCode=0000&phoneNumber=137222222";
+            //user.setPhoneNumber("137222222"+i);
+            //rc.createUser(user,"0000",null,null,null,null,null);
+            url=url+i;
+            doGet(url);
+        }
+        return null;
+    }*/
     /**
      * 创建用户
      *
@@ -499,7 +585,7 @@ public class RegisterController extends BaseController {
      */
     @RequestMapping(value = "/createUser", method = {RequestMethod.GET,RequestMethod.POST})
     @ResponseBody
-    public Map<String, Object> createUser(User user,String smsCode,
+    public  Map<String, Object> createUser(User user,String smsCode,
                                           String inviteCode, String deviceIdentifier, Double longitude, Double latitude, String deviceDesc) {
         logger.info("注册用户, createUser, telephone=" + user.getPhoneNumber() + ", password=" + user.getPassword() + ", smsCode=" + smsCode
                 + ", inviteCode=" + inviteCode);
@@ -573,5 +659,42 @@ public class RegisterController extends BaseController {
         return map;
     }
 
+
+    public static String doGet(String url) {
+        try {
+            HttpClient client = new DefaultHttpClient();
+            //发送get请求
+            HttpGet request = new HttpGet(url);
+            HttpResponse response = client.execute(request);
+
+            /**请求发送成功，并得到响应**/
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                /**读取服务器返回过来的json字符串数据**/
+                String strResult = EntityUtils.toString(response.getEntity());
+
+                return strResult;
+            }
+        }
+        catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+/*    public static void main(String[] args) {
+        RegisterController rc=new RegisterController();
+        User user=new User();
+        user.setPassword("a1234567");
+        String url="http://localhost:8080/proxy/reg/createUser?password=a1234567&smsCode=0000&phoneNumber=137222222";
+        for(int i=10;i<60;i++){
+            //user.setPhoneNumber("137222222"+i);
+            //rc.createUser(user,"0000",null,null,null,null,null);
+            url=url+i;
+            doGet(url);
+        }
+    }*/
 
 }

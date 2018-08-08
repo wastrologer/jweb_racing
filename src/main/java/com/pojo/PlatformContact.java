@@ -19,6 +19,20 @@ public class PlatformContact {
 
     private Date lastupdatetime;
 
+    @Override
+    public String toString() {
+        return "PlatformContact{" +
+                "id=" + id +
+                ", contactName='" + contactName + '\'' +
+                ", type=" + type +
+                ", image='" + image + '\'' +
+                ", text='" + text + '\'' +
+                ", isDel=" + isDel +
+                ", createTime=" + createTime +
+                ", lastupdatetime=" + lastupdatetime +
+                '}';
+    }
+
     public Long getId() {
         return id;
     }
